@@ -47,7 +47,8 @@ function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1">
       {status === 'ready' && (
         <aside className="flex w-52 shrink-0 flex-col bg-ink-900 text-gray-400">
           <NavLink
@@ -85,9 +86,22 @@ function Layout() {
           </div>
         </aside>
       )}
-      <main className="min-w-0 flex-1 bg-paper">
-        <Outlet />
-      </main>
+        <main className="min-w-0 flex-1 bg-paper">
+          <Outlet />
+        </main>
+      </div>
+      <footer className="flex h-7 shrink-0 items-center justify-center gap-1.5 border-t border-line bg-paper text-xs text-gray-500">
+        Developed by Mark Almeida-Cardy
+        <span aria-hidden="true">·</span>
+        <a
+          href="https://github.com/MarkAC007"
+          target="_blank"
+          rel="noreferrer"
+          className="text-pine-600 hover:underline"
+        >
+          GitHub
+        </a>
+      </footer>
     </div>
   )
 }

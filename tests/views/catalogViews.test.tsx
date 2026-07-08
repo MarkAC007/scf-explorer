@@ -47,7 +47,8 @@ describe('BaselinesView', () => {
 })
 
 describe('SourcesView', () => {
-  it('renders the sources directory grouped by geography', () => {
+  // ~250 framework rows: slow under full-suite parallel load, so extended timeout
+  it('renders the sources directory grouped by geography', { timeout: 15_000 }, () => {
     wrap(<SourcesView />)
     expect(screen.getAllByText(/EMEA/).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByRole('link', { name: /source/i }).length).toBeGreaterThan(10)

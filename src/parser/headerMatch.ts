@@ -6,6 +6,7 @@ export const normalizeHeader = (h: unknown): string =>
 export const slugify = (h: string): string =>
   normalizeHeader(h)
     .toLowerCase()
+    .replace(/\+/g, ' plus') // keep "GovRAMP Low+" distinct from "GovRAMP Low"
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 

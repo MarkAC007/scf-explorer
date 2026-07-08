@@ -61,8 +61,18 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
   const aosByControl = new Map<string, AssessmentObjective[]>()
   for (const ao of m.assessmentObjectives) push(aosByControl, ao.controlId, ao)
 
+  // Evidence links exist in both directions in the workbook (control → ERL # cell,
+  // and ERL sheet → control mappings) and disagree for ~22 controls. Index the union
+  // so no linkage is lost; unresolvable forward refs (source typos) are skipped.
+  const erlById = new Map(m.erlItems.map((e) => [e.id, e]))
   const erlByControl = new Map<string, ErlItem[]>()
   for (const e of m.erlItems) for (const cid of e.controlIds) push(erlByControl, cid, e)
+  for (const c of m.controls) {
+    for (const eid of c.erlIds) {
+      const e = erlById.get(eid)
+      if (e && !(erlByControl.get(c.id) ?? []).includes(e)) push(erlByControl, c.id, e)
+    }
+  }
 
   return {
     controlById: new Map(m.controls.map((c) => [c.id, c])),
@@ -76,7 +86,7 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
     controlsByThreat,
     controlsByBaseline,
     aosByControl,
-    erlById: new Map(m.erlItems.map((e) => [e.id, e])),
+    erlById,
     erlByControl,
     compensatingByControl: new Map(m.compensating.map((c) => [c.controlId, c])),
     stats: {

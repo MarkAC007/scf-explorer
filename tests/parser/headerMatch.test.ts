@@ -21,6 +21,10 @@ describe('slugify', () => {
   it('trims leading/trailing dashes', () => {
     expect(slugify('(privacy)')).toBe('privacy')
   })
+  it('keeps + distinct so GovRAMP Low+ does not collide with GovRAMP Low', () => {
+    expect(slugify('GovRAMP\nLow+')).toBe('govramp-low-plus')
+    expect(slugify('GovRAMP\nLow')).toBe('govramp-low')
+  })
 })
 
 describe('findColumn', () => {

@@ -99,7 +99,8 @@ export interface CompensatingEntry {
 }
 
 export interface PrivacyPrinciple {
-  num: number
+  /** Hierarchical principle number as authored, e.g. "1", "1.10" (string: 1.10 ≠ 1.1). */
+  num: string
   name: string
   description: string
   controlIds: string[]

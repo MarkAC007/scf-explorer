@@ -54,12 +54,12 @@ describe('parsePrivacyPrinciples', () => {
   const pps = parsePrivacyPrinciples(sheet(/data privacy mgmt principles/i))
   it('groups rows by principle and collects control ids', () => {
     expect(pps.length).toBeGreaterThanOrEqual(1)
-    const p1 = pps.find((p) => p.num === 1)!
+    const p1 = pps.find((p) => p.num === '1')!
     expect(p1.name).toBe('Data Privacy by Design')
     expect(p1.controlIds).toContain('GOV-01')
   })
   it('collects privacy framework mappings', () => {
-    const p1 = pps.find((p) => p.num === 1)!
+    const p1 = pps.find((p) => p.num === '1')!
     expect(Object.keys(p1.mappings).length).toBeGreaterThan(0)
   })
 })

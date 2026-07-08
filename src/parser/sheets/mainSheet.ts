@@ -180,7 +180,12 @@ export const parseMainSheet = (
       description: String(cell(row, 'description') ?? '').trim(),
       question: String(cell(row, 'question') ?? '').trim(),
       cadence: String(cell(row, 'cadence') ?? '').trim(),
-      weighting: Number(cell(row, 'weighting')) || null,
+      weighting: (() => {
+        const raw = cell(row, 'weighting')
+        if (raw == null || String(raw).trim() === '') return null
+        const n = Number(raw)
+        return Number.isFinite(n) ? n : null // 0 is a legitimate weighting (e.g. TDA-11.2)
+      })(),
       pptdf: splitMulti(cell(row, 'pptdf')),
       csfFunction: String(cell(row, 'csf') ?? '').trim(),
       scrmTiers: scrmTiers.sort(),

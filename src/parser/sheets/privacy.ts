@@ -20,13 +20,14 @@ export const parsePrivacyPrinciples = (ws: XLSX.WorkSheet): PrivacyPrinciple[] =
     .map((h, i) => ({ h, i }))
     .filter(({ h, i }) => h && !fixed.has(i) && i > cControl)
 
-  const byNum = new Map<number, PrivacyPrinciple>()
-  let lastNum = 0
+  const byNum = new Map<string, PrivacyPrinciple>()
+  let lastNum = ''
   for (const r of rows.slice(1)) {
-    const rawNum = Number(r[cNum])
-    if (rawNum > 0) lastNum = rawNum
+    const rawNum = r[cNum]
+    const numStr = rawNum == null ? '' : String(rawNum).trim()
+    if (numStr) lastNum = numStr
     const num = lastNum
-    if (num === 0) continue
+    if (num === '') continue
     const controlId = String(r[cControl] ?? '').trim()
 
     let p = byNum.get(num)
@@ -54,5 +55,10 @@ export const parsePrivacyPrinciples = (ws: XLSX.WorkSheet): PrivacyPrinciple[] =
       p.mappings[id] = [...new Set([...existing, ...refs])]
     }
   }
-  return [...byNum.values()].sort((a, b) => a.num - b.num)
+  const parts = (n: string): number[] => n.split('.').map(Number)
+  return [...byNum.values()].sort((a, b) => {
+    const [a1, a2 = 0] = parts(a.num)
+    const [b1, b2 = 0] = parts(b.num)
+    return a1 - b1 || a2 - b2
+  })
 }

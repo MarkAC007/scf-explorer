@@ -129,6 +129,7 @@ tier_counts = {1: 0, 2: 0, 3: 0}
 mapping_cells = 0
 mapping_refs = 0
 fwd_erl = {}
+control_hashes = {}
 per_fw_controls = {k: 0 for k in fw_cols}
 samples = {}
 
@@ -153,6 +154,7 @@ for row in rows:
     row_fw = {}
     risk_ids, threat_ids = [], []
     maturity_texts = []
+    solution_texts = []
     for i, (kind, key) in enumerate(kinds):
         v = row[i] if i < len(row) else None
         filled = v is not None and str(v).strip() != ""
@@ -174,12 +176,36 @@ for row in rows:
                 maturity_nonempty += 1
         elif kind == "solution" and filled:
             solutions_nonempty += 1
+            solution_texts.append(norm(v))
         elif kind == "baseline" and filled:
             baseline_counts[key] = baseline_counts.get(key, 0) + 1
         elif kind == "tier" and filled:
             tier_counts[key] += 1
     for k in row_fw:
         per_fw_controls[k] += 1
+    maturity_sorted = sorted(maturity_texts)
+    control_hashes[cid] = md5(
+        "\x1f".join(
+            [
+                cid,
+                norm(row[core_idx["name"]]),
+                norm(row[core_idx["description"]]),
+                norm(row[core_idx["question"]]),
+                norm(row[core_idx["cadence"]]),
+                norm(row[core_idx["csf"]]),
+                "" if wv is None else str(wv),
+                ";".join(pptdf),
+                ";".join(erl_ids),
+                ";".join(sorted(risk_ids)),
+                ";".join(sorted(threat_ids)),
+                "|".join(t for _, t in maturity_sorted),
+                "|".join(solution_texts),
+                "|".join(
+                    f"{fw}={';'.join(row_fw[fw])}" for fw in sorted(row_fw)
+                ),
+            ]
+        )
+    )
     if cid in SAMPLE_IDS:
         maturity_texts.sort()
         samples[cid] = {
@@ -217,6 +243,7 @@ out["mainSheet"] = {
     "mappedFrameworks": sum(1 for v in per_fw_controls.values() if v > 0),
     "perFrameworkControls": per_fw_controls,
 }
+out["mainSheet"]["controlHashes"] = control_hashes
 out["samples"] = samples
 
 # ---- Domains ----------------------------------------------------------------
@@ -334,6 +361,77 @@ out["privacy"] = {
     "controlLinks": sum(len(v) for v in principles.values()),
 }
 
+# ---- Full-content hashes: AOs, ERL, compensating, domains ------------------
+ws = sheet_by(r"^assessment objectives")
+rows = ws.iter_rows(values_only=True)
+hdr = [norm(h) for h in next(rows)]
+cctl = next(i for i, h in enumerate(hdr) if re.match(r"^scf #$", h, re.I))
+cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
+ctext = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\)", h, re.I))
+crig = next(i for i, h in enumerate(hdr) if re.match(r"^assessment rigor", h, re.I))
+corig = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\) origin", h, re.I))
+ao_rows = []
+for r in rows:
+    aid = norm(r[cao])
+    if not aid:
+        continue
+    try:
+        rig = str(int(float(r[crig])))
+        if rig == "0":
+            rig = ""
+    except (TypeError, ValueError):
+        rig = ""
+    ao_rows.append("\x1f".join([aid, norm(r[cctl]), norm(r[ctext]), rig, ";".join(split_multi(r[corig]))]))
+out["aos"]["contentHash"] = md5("\n".join(sorted(ao_rows)))
+
+ws = sheet_by(r"^evidence request list")
+rows = ws.iter_rows(values_only=True)
+hdr = [norm(h) for h in next(rows)]
+ci_ = hdr.index("ERL #")
+ca_ = hdr.index("Area of Focus")
+cart = hdr.index("Documentation Artifact")
+cd_ = hdr.index("Artifact Description")
+cm_ = hdr.index("SCF Control Mappings")
+erl_rows = []
+for r in rows:
+    eid = norm(r[ci_])
+    if not eid:
+        continue
+    erl_rows.append("\x1f".join([eid, norm(r[ca_]), norm(r[cart]), norm(r[cd_]), ";".join(split_multi(r[cm_]))]))
+out["erl"]["contentHash"] = md5("\n".join(sorted(erl_rows)))
+
+ws = sheet_by(r"^compensating controls")
+rows = ws.iter_rows(values_only=True)
+hdr = [norm(h) for h in next(rows)]
+cctl = hdr.index("SCF Control #")
+crisk = next(i for i, h in enumerate(hdr) if re.match(r"^risk if primary control", h, re.I))
+groups = [i for i, h in enumerate(hdr) if re.match(r"^possible compensating control #\d", h, re.I)]
+comp_rows = []
+for r in rows:
+    cid_v = norm(r[cctl])
+    if not re.match(r"^[A-Z]{2,4}-\d", cid_v):
+        continue
+    opts = []
+    for g in groups:
+        oid = norm(r[g + 2]) if g + 2 < len(r) else ""
+        if oid and not re.match(r"^n/?a$", oid, re.I):
+            opts.append(f"{oid}:{norm(r[g + 1])}:{norm(r[g + 3]) if g + 3 < len(r) else ''}")
+    comp_rows.append("\x1f".join([cid_v, norm(r[crisk]), "|".join(opts)]))
+out["compensating"]["contentHash"] = md5("\n".join(sorted(comp_rows)))
+
+ws = sheet_by(r"domains & principles")
+rows = list(ws.iter_rows(values_only=True))
+hdr = [norm(h) for h in rows[0]]
+ci_ = hdr.index("SCF Identifier")
+cn_ = hdr.index("SCF Domain")
+cp_ = next(i for i, h in enumerate(hdr) if h.endswith("Principles"))
+cin_ = hdr.index("Principle Intent")
+dom_rows = []
+for r in rows[1:]:
+    if norm(r[ci_]):
+        dom_rows.append("\x1f".join([norm(r[ci_]), norm(r[cn_]), norm(r[cp_]), norm(r[cin_])]))
+out["domains"]["contentHash"] = md5("\n".join(sorted(dom_rows)))
+
 # ---- Risk / Threat catalogs -----------------------------------------------------
 for key, pat, grp_hdr, id_hdr in [
     ("risks", r"risk catalog", "risk grouping", "risk #"),
@@ -344,8 +442,17 @@ for key, pat, grp_hdr, id_hdr in [
     hrow = next(i for i, r in enumerate(rows) if norm(r[0]).lower() == grp_hdr)
     hdr = [norm(h).lower() for h in rows[hrow]]
     cid_ = hdr.index(id_hdr)
-    entries = [norm(r[cid_]) for r in rows[hrow + 1:] if norm(r[cid_])]
-    out[key] = {"count": len(entries), "ids": sorted(entries)}
+    cname = next(i for i, h in enumerate(hdr) if h.startswith(id_hdr.split(" ")[0] + "*"))
+    cdesc = next(i for i, h in enumerate(hdr) if "description" in h)
+    entries = []
+    cat_rows = []
+    for r in rows[hrow + 1:]:
+        rid = norm(r[cid_])
+        if not rid:
+            continue
+        entries.append(rid)
+        cat_rows.append("\x1f".join([rid, norm(r[cname]), norm(r[cdesc])]))
+    out[key] = {"count": len(entries), "ids": sorted(entries), "contentHash": md5("\n".join(sorted(cat_rows)))}
 
 json.dump(out, sys.stdout, indent=1, sort_keys=True)
 print(file=sys.stderr)

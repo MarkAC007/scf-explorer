@@ -132,6 +132,91 @@ describe.skipIf(!SCF || !GT)('real workbook vs independent ground truth', () => 
     expect(model.threats.map((t) => t.id).sort()).toEqual(gt.threats.ids)
   })
 
+  it('EVERY control matches content-hash-for-content-hash (all fields, all mappings)', () => {
+    const mismatches: string[] = []
+    for (const c of model.controls) {
+      const ser = [
+        c.id,
+        collapse(c.name),
+        collapse(c.description),
+        collapse(c.question),
+        collapse(c.cadence),
+        collapse(c.csfFunction),
+        c.weighting == null ? '' : String(c.weighting),
+        c.pptdf.join(';'),
+        c.erlIds.join(';'),
+        [...c.riskIds].sort().join(';'),
+        [...c.threatIds].sort().join(';'),
+        [...c.maturity]
+          .sort((a, b) => a.level - b.level)
+          .map((m) => collapse(m.text))
+          .join('|'),
+        c.solutions.map((x) => collapse(x.text)).join('|'),
+        Object.keys(c.mappings)
+          .sort()
+          .map((fw) => `${fw}=${c.mappings[fw].join(';')}`)
+          .join('|'),
+      ].join('\x1f')
+      if (md5(ser) !== gt.mainSheet.controlHashes[c.id]) mismatches.push(c.id)
+    }
+    expect(mismatches, 'controls whose full content differs from source').toEqual([])
+    expect(Object.keys(gt.mainSheet.controlHashes).length).toBe(model.controls.length)
+  })
+
+  it('supporting sheets match content-hash-for-content-hash', () => {
+    const joinSorted = (rows: string[]): string => [...rows].sort().join('\n')
+    const aoRows = model.assessmentObjectives.map((a) =>
+      [
+        a.id,
+        a.controlId,
+        collapse(a.text),
+        a.rigor == null ? '' : String(a.rigor),
+        a.origins.join(';'),
+      ].join('\x1f'),
+    )
+    expect(md5(joinSorted(aoRows)), 'assessment objectives content').toBe(
+      gt.aos.contentHash,
+    )
+    const erlRows = model.erlItems.map((e) =>
+      [
+        e.id,
+        collapse(e.areaOfFocus),
+        collapse(e.artifact),
+        collapse(e.description),
+        e.controlIds.join(';'),
+      ].join('\x1f'),
+    )
+    expect(md5(joinSorted(erlRows)), 'ERL content').toBe(gt.erl.contentHash)
+    const compRows = model.compensating.map((c) =>
+      [
+        c.controlId,
+        collapse(c.riskNote),
+        c.options
+          .map(
+            (o) => `${collapse(o.id)}:${collapse(o.name)}:${collapse(o.justification)}`,
+          )
+          .join('|'),
+      ].join('\x1f'),
+    )
+    expect(md5(joinSorted(compRows)), 'compensating content').toBe(
+      gt.compensating.contentHash,
+    )
+    const domRows = model.domains.map((d) =>
+      [d.id, collapse(d.name), collapse(d.principle), collapse(d.intent)].join('\x1f'),
+    )
+    expect(md5(joinSorted(domRows)), 'domains content').toBe(gt.domains.contentHash)
+    const riskRows = model.risks.map((r) =>
+      [r.id, collapse(r.name), collapse(r.description)].join('\x1f'),
+    )
+    expect(md5(joinSorted(riskRows)), 'risk catalog content').toBe(gt.risks.contentHash)
+    const threatRows = model.threats.map((t) =>
+      [t.id, collapse(t.name), collapse(t.description)].join('\x1f'),
+    )
+    expect(md5(joinSorted(threatRows)), 'threat catalog content').toBe(
+      gt.threats.contentHash,
+    )
+  })
+
   it('sample controls match field-for-field, including exact text and mapping refs', () => {
     for (const [id, truth] of Object.entries<Record<string, unknown>>(gt.samples)) {
       const c = ix.controlById.get(id)

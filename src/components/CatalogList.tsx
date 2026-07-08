@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Control } from '../model/types'
 import Badge from './Badge'
+import { useScope } from '../scope/scopeStore'
 
 export interface CatalogEntry {
   id: string
@@ -22,6 +23,7 @@ export default function CatalogList({
   tone: 'red' | 'amber'
 }) {
   const [open, setOpen] = useState<string | null>(null)
+  const scopeSet = useScope((s) => s.activeControlIds)
 
   const groups = new Map<string, CatalogEntry[]>()
   for (const e of entries) {
@@ -50,7 +52,9 @@ export default function CatalogList({
                     className="ml-auto text-sm text-pine-600 hover:underline"
                     aria-expanded={open === e.id}
                   >
-                    {e.linked.length} control{e.linked.length === 1 ? '' : 's'}
+                    {scopeSet
+                      ? `${e.linked.filter((c) => scopeSet.has(c.id)).length} of ${e.linked.length} in scope`
+                      : `${e.linked.length} control${e.linked.length === 1 ? '' : 's'}`}
                   </button>
                 </div>
                 <p className="mt-2 text-sm text-gray-600">{e.description}</p>

@@ -50,7 +50,9 @@ export const createModelStore = (parseFn: ParseFn): StoreApi<ModelState> =>
   createStore<ModelState>((set) => ({
     model: null,
     indexes: null,
-    status: 'empty',
+    // Boot as 'loading' so deep links (e.g. shared scope URLs) are not redirected
+    // to /upload before the cache check has run.
+    status: 'loading',
     progress: null,
     error: null,
 

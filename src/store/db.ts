@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { ScfModel } from '../model/types'
+import type { ScopeDef } from '../scope/scopeMath'
 
 interface ModelRow {
   id: string
@@ -8,9 +9,11 @@ interface ModelRow {
 
 export const db = new Dexie('scf-explorer') as Dexie & {
   models: EntityTable<ModelRow, 'id'>
+  scopes: EntityTable<ScopeDef, 'id'>
 }
 
 db.version(1).stores({ models: 'id' })
+db.version(2).stores({ models: 'id', scopes: 'id' })
 
 export const saveModel = async (model: ScfModel): Promise<void> => {
   await db.models.put({ id: 'current', model })

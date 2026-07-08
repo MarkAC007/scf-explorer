@@ -8,6 +8,8 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useModel, modelStore } from './store/modelStore'
+import { useScope, scopeStore } from './scope/scopeStore'
+import ProgramView from './views/ProgramView'
 import UploadView from './views/UploadView'
 import DashboardView from './views/DashboardView'
 import ControlsView from './views/ControlsView'
@@ -22,6 +24,7 @@ import PrivacyView from './views/PrivacyView'
 const NAV = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/controls', label: 'Controls' },
+  { to: '/program', label: 'Program' },
   { to: '/crosswalk', label: 'Crosswalk' },
   { to: '/risks', label: 'Risks' },
   { to: '/threats', label: 'Threats' },
@@ -33,7 +36,16 @@ const NAV = [
 function Layout() {
   const status = useModel((s) => s.status)
   const model = useModel((s) => s.model)
+  const indexes = useModel((s) => s.indexes)
+  const activeScope = useScope((s) => s.activeScope)
+  const activeControlIds = useScope((s) => s.activeControlIds)
   const location = useLocation()
+
+  useEffect(() => {
+    if (status === 'ready' && model && indexes) {
+      void scopeStore.getState().init(model, indexes)
+    }
+  }, [status, model, indexes])
 
   if (status === 'loading') {
     return (
@@ -75,6 +87,31 @@ function Layout() {
               </NavLink>
             ))}
           </nav>
+          {activeScope && (
+            <div className="mx-2 mb-2 rounded-lg bg-ink-800 p-2.5 text-xs" data-testid="scope-chip">
+              <div className="flex items-center gap-1.5">
+                <span className="text-pine-300">◉</span>
+                <NavLink
+                  to="/program"
+                  className="min-w-0 flex-1 truncate font-medium text-white hover:underline"
+                  title={activeScope.name}
+                >
+                  {activeScope.name}
+                </NavLink>
+                <button
+                  type="button"
+                  aria-label="Deactivate scope"
+                  className="text-gray-500 hover:text-white"
+                  onClick={() => void scopeStore.getState().setActive(null)}
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="mt-0.5 text-gray-400">
+                {activeControlIds?.size.toLocaleString()} controls in scope
+              </div>
+            </div>
+          )}
           <div className="border-t border-ink-700 p-3 text-xs">
             <div className="font-mono font-semibold text-pine-300">SCF {model?.version}</div>
             <div className="truncate text-gray-500" title={model?.sourceFileName}>
@@ -113,6 +150,7 @@ const router = createHashRouter([
       { path: '/', element: <DashboardView /> },
       { path: '/upload', element: <UploadView /> },
       { path: '/controls', element: <ControlsView /> },
+      { path: '/program', element: <ProgramView /> },
       { path: '/controls/:id', element: <ControlDetailView /> },
       { path: '/crosswalk', element: <CrosswalkView /> },
       { path: '/risks', element: <RisksView /> },

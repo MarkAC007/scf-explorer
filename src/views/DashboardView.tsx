@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useModel } from '../store/modelStore'
+import { useScope } from '../scope/scopeStore'
 import StatCard from '../components/StatCard'
 
 export default function DashboardView() {
   const model = useModel((s) => s.model)
   const indexes = useModel((s) => s.indexes)
+  const activeScope = useScope((s) => s.activeScope)
+  const scopeSet = useScope((s) => s.activeControlIds)
   if (!model || !indexes) return null
   const { stats } = indexes
 
@@ -25,8 +28,19 @@ export default function DashboardView() {
         </p>
       </header>
 
+      {activeScope && scopeSet && (
+        <div className="mt-4 rounded-lg border border-pine-300 bg-pine-50 px-4 py-2 text-sm text-pine-700">
+          Viewing through scope <span className="font-medium">{activeScope.name}</span> —{' '}
+          {scopeSet.size.toLocaleString()} of {stats.controls.toLocaleString()} controls.
+        </div>
+      )}
+
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatCard label="Controls" value={stats.controls} />
+        <StatCard
+          label={scopeSet ? 'Controls in scope' : 'Controls'}
+          value={scopeSet ? scopeSet.size : stats.controls}
+          ghost={scopeSet ? stats.controls : undefined}
+        />
         <StatCard label="Frameworks mapped" value={stats.mappedFrameworks} />
         <StatCard label="Domains" value={stats.domains} />
         <StatCard label="Risks" value={stats.risks} />
@@ -37,7 +51,8 @@ export default function DashboardView() {
       <h2 className="mt-10 text-lg font-semibold text-gray-900">Domains</h2>
       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {model.domains.map((d) => {
-          const count = indexes.controlsByDomain.get(d.id)?.length ?? 0
+          const all = indexes.controlsByDomain.get(d.id) ?? []
+          const count = scopeSet ? all.filter((c) => scopeSet.has(c.id)).length : all.length
           return (
             <Link
               key={d.id}
@@ -49,7 +64,11 @@ export default function DashboardView() {
                   {d.id}
                 </span>
                 <span className="text-xs text-gray-400">
-                  {count > 0 ? `${count} controls` : `${d.controlCount} controls`}
+                  {scopeSet
+                    ? `${count} in scope`
+                    : count > 0
+                      ? `${count} controls`
+                      : `${d.controlCount} controls`}
                 </span>
               </div>
               <div className="mt-2 font-medium text-gray-900">{d.name}</div>

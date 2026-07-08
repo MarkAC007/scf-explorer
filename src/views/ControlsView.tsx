@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useModel } from '../store/modelStore'
+import { useScope } from '../scope/scopeStore'
 import { buildSearch } from '../search/searchIndex'
 import { applyFilters, type ControlFilters } from './controlsFilter'
 import { downloadCsv } from '../lib/csv'
@@ -14,7 +15,10 @@ const CSF = ['Govern', 'Identify', 'Protect', 'Detect', 'Respond', 'Recover']
 export default function ControlsView() {
   const model = useModel((s) => s.model)
   const indexes = useModel((s) => s.indexes)
+  const activeScope = useScope((s) => s.activeScope)
+  const scopeSet = useScope((s) => s.activeControlIds)
   const [params, setParams] = useSearchParams()
+  const showAll = params.get('all') === '1'
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const search = useMemo(
@@ -35,10 +39,11 @@ export default function ControlsView() {
     [params],
   )
 
-  const filtered = useMemo(
-    () => (model && search ? applyFilters(model.controls, filters, search) : []),
-    [model, search, filters],
-  )
+  const filtered = useMemo(() => {
+    if (!model || !search) return []
+    const base = applyFilters(model.controls, filters, search)
+    return scopeSet && !showAll ? base.filter((c) => scopeSet.has(c.id)) : base
+  }, [model, search, filters, scopeSet, showAll])
 
   const rowVirtualizer = useVirtualizer({
     count: filtered.length,
@@ -198,9 +203,19 @@ export default function ControlsView() {
             value={filters.query ?? ''}
             onChange={(e) => setParam('q', e.target.value || null)}
           />
-          <span className="text-sm tabular-nums text-gray-500">
+          <span className="text-sm tabular-nums text-gray-500" data-testid="control-count">
             {filtered.length.toLocaleString()} controls
           </span>
+          {activeScope && (
+            <label className="flex items-center gap-1.5 text-sm text-pine-700">
+              <input
+                type="checkbox"
+                checked={!showAll}
+                onChange={() => setParam('all', showAll ? null : '1')}
+              />
+              scope: {activeScope.name}
+            </label>
+          )}
           <button
             type="button"
             onClick={exportCsv}

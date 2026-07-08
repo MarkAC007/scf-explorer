@@ -21,11 +21,15 @@ The SCF's genius is that it is a *meta-framework*: satisfy an SCF control once, 
 
   ![Crosswalk](docs/screenshots/crosswalk.png)
 
+- **Program scopes** — pick the frameworks your organisation must satisfy and see the compliance program they imply: total controls and % of the SCF, per-framework *marginal contribution* ("NIS2 adds only 3 controls you don't already have"), spine/edge analysis, domain coverage, and read-only rollups of the **evidence artifacts** and **solution guidance** connected to the in-scope controls. Scopes are named, saved locally, and shareable as URLs that carry only framework ids — never data. When a scope is active the whole app views through it.
+
+  ![Program scopes](docs/screenshots/program.png)
+
 - **Risk & threat catalogs** — the SCF's 39 risks and 41 threats, each linked both ways to controls.
 - **Baselines & sources** — SCF CORE baseline subsets and the full authoritative-sources directory with source and STRM links.
 - **Privacy principles** — the SCF-DPMP principle set with its control and privacy-framework mappings.
 - **Version-tolerant parser** — sheets and columns are located by fuzzy header matching, not fixed positions; anything unrecognised is listed in a parse report instead of silently dropped.
-- **Local-first** — parsed model is cached in IndexedDB, so the app loads instantly on return visits. No backend, no telemetry, no data leaves the browser.
+- **Local-first, installable** — parsed model is cached in IndexedDB, so the app loads instantly on return visits, and it installs as a PWA (Chrome's install button / "Add to Home Screen") that works offline. No backend, no telemetry, no data leaves the browser.
 
 ## Using it
 

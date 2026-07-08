@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useModel } from '../store/modelStore'
+import { useScope } from '../scope/scopeStore'
 import { groupMappings } from './controlDetail.helpers'
 import Badge from '../components/Badge'
 import WeightBar from '../components/WeightBar'
@@ -19,6 +20,7 @@ export default function ControlDetailView() {
   const { id } = useParams()
   const model = useModel((s) => s.model)
   const indexes = useModel((s) => s.indexes)
+  const activeScope = useScope((s) => s.activeScope)
   const [mappingFilter, setMappingFilter] = useState('')
 
   const control = id ? indexes?.controlById.get(id) : undefined
@@ -83,6 +85,26 @@ export default function ControlDetailView() {
           )}
         </div>
       </div>
+
+      {activeScope && control && (
+        <div
+          className={`mt-4 rounded-lg border px-4 py-2 text-sm ${
+            activeScope.frameworkIds.some((fw) => fw in control.mappings)
+              ? 'border-pine-300 bg-pine-50 text-pine-700'
+              : 'border-line bg-white text-gray-500'
+          }`}
+          data-testid="scope-banner"
+        >
+          {(() => {
+            const via = activeScope.frameworkIds.filter((fw) => fw in control.mappings)
+            return via.length > 0
+              ? `In scope “${activeScope.name}” via ${via
+                  .map((fw) => indexes.frameworkById.get(fw)?.name ?? fw)
+                  .join(', ')}`
+              : `Not in the current scope “${activeScope.name}”`
+          })()}
+        </div>
+      )}
 
       <header className="mt-4 rounded-lg border border-line bg-white p-6">
         <div className="flex flex-wrap items-center gap-3">

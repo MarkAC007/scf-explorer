@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useModel } from '../store/modelStore'
+import { useScope, scopeStore } from '../scope/scopeStore'
 import { coverage, overlap } from './crosswalk'
 import { downloadCsv } from '../lib/csv'
 import Badge from '../components/Badge'
@@ -61,8 +62,35 @@ function FrameworkSelect({
 export default function CrosswalkView() {
   const model = useModel((s) => s.model)
   const indexes = useModel((s) => s.indexes)
+  const activeScope = useScope((s) => s.activeScope)
   const [params, setParams] = useSearchParams()
   const [filter, setFilter] = useState<OverlapFilter>('all')
+
+  const addToScope = (fwId: string) => {
+    if (activeScope && !activeScope.frameworkIds.includes(fwId)) {
+      void scopeStore
+        .getState()
+        .updateFrameworks(activeScope.id, [...activeScope.frameworkIds, fwId])
+    }
+  }
+  const AddToScope = ({ fwId }: { fwId: string }) =>
+    activeScope ? (
+      activeScope.frameworkIds.includes(fwId) ? (
+        <span className="text-xs text-pine-600">in scope ✓</span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => addToScope(fwId)}
+          className="text-xs text-pine-600 hover:underline"
+        >
+          + add to scope
+        </button>
+      )
+    ) : (
+      <Link to={`/program?fw=${fwId}`} className="text-xs text-pine-600 hover:underline">
+        + start a scope
+      </Link>
+    )
 
   const fwA = params.get('fw') ?? ''
   const fwB = params.get('fwB') ?? ''
@@ -191,6 +219,7 @@ export default function CrosswalkView() {
                 STRM mapping ↗
               </a>
             )}
+            <AddToScope fwId={cov.framework.id} />
             <button
               type="button"
               onClick={exportCoverage}
@@ -292,6 +321,10 @@ export default function CrosswalkView() {
               </button>{' '}
               are your gap.”
             </p>
+            <span className="flex items-center gap-3">
+              <AddToScope fwId={fwA} />
+              <AddToScope fwId={fwB} />
+            </span>
             <button
               type="button"
               onClick={exportOverlap}

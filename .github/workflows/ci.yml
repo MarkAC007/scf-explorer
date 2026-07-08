@@ -18,6 +18,21 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Cache SCF workbook
+        uses: actions/cache@v4
+        with:
+          path: .scf-cache
+          key: scf-workbook-2026.1.1
+      - name: Fetch official SCF workbook and generate test fixture
+        # The SCF is CC BY-ND 4.0, so no SCF content (not even a trimmed slice)
+        # lives in this repo. Tests fetch the unmodified official release from
+        # the SCF Council's own GitHub and derive the fixture at test time.
+        run: |
+          mkdir -p .scf-cache
+          [ -f .scf-cache/scf.xlsx ] || curl -sSL --retry 3 -o .scf-cache/scf.xlsx \
+            "https://github.com/securecontrolsframework/securecontrolsframework/releases/download/2026.1.1/Secure.Controls.Framework.SCF.-.2026.1.1.xlsx"
+          echo "ef13a69f58e3290168b0d582330b87d22d4ee39e846ec64c3d4e98e7886c312e  .scf-cache/scf.xlsx" | sha256sum -c -
+          SCF_XLSX=.scf-cache/scf.xlsx node scripts/make-fixture.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

@@ -105,6 +105,19 @@ export default function UploadView() {
         .
       </p>
 
+      <p className="mt-2 text-xs text-gray-400">
+        SCF content © SCF Council,{' '}
+        <a
+          className="hover:underline"
+          href="https://creativecommons.org/licenses/by-nd/4.0/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          CC BY-ND 4.0
+        </a>{' '}
+        — rendered unmodified. Not affiliated with the SCF Council.
+      </p>
+
       {status === 'ready' && model && <ParseReportPanel report={model.parseReport} />}
     </div>
   )

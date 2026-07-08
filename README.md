@@ -61,5 +61,5 @@ Stack: React + TypeScript + Vite, Tailwind CSS, SheetJS (in a Web Worker), Dexie
 ## Licence & attribution
 
 - Code: [MIT](LICENSE).
-- The Secure Controls Framework content is created and maintained by the [SCF Council](https://securecontrolsframework.com) and distributed under its own licence. This project ships **no SCF data** — you bring the workbook.
-- **This project is not affiliated with or endorsed by the SCF Council.** It exists to make their excellent work easier to explore.
+- The Secure Controls Framework is created and maintained by the [SCF Council](https://securecontrolsframework.com) and licensed under [Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/). SCF Explorer renders SCF content **exactly as published** — nothing is modified, remixed or derived — and this repository ships **no SCF data whatsoever**; you bring the official workbook, and even the test suite fetches the unmodified official release at test time rather than committing any slice of it.
+- **This project is not affiliated with or endorsed by the SCF Council.** It is an independent effort supporting GRC practitioners in getting the most out of the SCF and of meta-framework thinking generally.

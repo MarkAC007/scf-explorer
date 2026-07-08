@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   createHashRouter,
   NavLink,
@@ -40,6 +40,11 @@ function Layout() {
   const activeScope = useScope((s) => s.activeScope)
   const activeControlIds = useScope((s) => s.activeControlIds)
   const location = useLocation()
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    mainRef.current?.scrollTo(0, 0)
+  }, [location.pathname])
 
   useEffect(() => {
     if (status === 'ready' && model && indexes) {
@@ -59,8 +64,8 @@ function Layout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="flex flex-1">
+    <div className="flex h-dvh flex-col">
+      <div className="flex min-h-0 flex-1">
       {status === 'ready' && (
         <aside className="flex w-52 shrink-0 flex-col bg-ink-900 text-gray-400">
           <NavLink
@@ -69,7 +74,7 @@ function Layout() {
           >
             SCF <span className="text-pine-300">Explorer</span>
           </NavLink>
-          <nav className="flex-1 space-y-0.5 px-2" aria-label="Main">
+          <nav className="flex-1 space-y-0.5 overflow-y-auto px-2" aria-label="Main">
             {NAV.map((n) => (
               <NavLink
                 key={n.to}
@@ -123,7 +128,7 @@ function Layout() {
           </div>
         </aside>
       )}
-        <main className="min-w-0 flex-1 bg-paper">
+        <main ref={mainRef} className="min-w-0 flex-1 overflow-y-auto bg-paper">
           <Outlet />
         </main>
       </div>

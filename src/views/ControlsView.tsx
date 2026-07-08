@@ -87,7 +87,7 @@ export default function ControlsView() {
     .sort((a, b) => a.name.localeCompare(b.name))
 
   return (
-    <div className="flex h-[calc(100dvh-1.75rem)]">
+    <div className="flex h-full">
       <aside className="w-64 shrink-0 space-y-5 overflow-y-auto border-r border-line bg-white p-4">
         <div>
           <label htmlFor="f-domain" className="eyebrow">

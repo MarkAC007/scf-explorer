@@ -32,7 +32,7 @@ function FrameworkSelect({
 
   return (
     <div className="min-w-0 flex-1">
-      <label htmlFor={id} className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+      <label htmlFor={id} className="eyebrow">
         {label}
       </label>
       <select
@@ -176,7 +176,7 @@ export default function CrosswalkView() {
                 href={cov.framework.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm text-indigo-600 hover:underline"
+                className="text-sm text-pine-600 hover:underline"
               >
                 Source ↗
               </a>
@@ -186,7 +186,7 @@ export default function CrosswalkView() {
                 href={cov.framework.strmUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm text-indigo-600 hover:underline"
+                className="text-sm text-pine-600 hover:underline"
               >
                 STRM mapping ↗
               </a>
@@ -194,13 +194,13 @@ export default function CrosswalkView() {
             <button
               type="button"
               onClick={exportCoverage}
-              className="ml-auto rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="ml-auto rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-paper"
             >
               Export CSV
             </button>
           </div>
 
-          <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="mt-6 eyebrow">
             Domain coverage
           </h3>
           <div className="mt-2 grid gap-x-8 gap-y-1.5 sm:grid-cols-2">
@@ -211,7 +211,7 @@ export default function CrosswalkView() {
                 </span>
                 <span className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
                   <span
-                    className="block h-full bg-indigo-500"
+                    className="block h-full bg-pine-500"
                     style={{ width: `${total ? (mapped / total) * 100 : 0}%` }}
                   />
                 </span>
@@ -222,17 +222,17 @@ export default function CrosswalkView() {
             ))}
           </div>
 
-          <h3 className="mt-6 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <h3 className="mt-6 eyebrow">
             Mapped controls
           </h3>
-          <div className="mt-2 overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div className="mt-2 overflow-hidden rounded-lg border border-line bg-white">
             {cov.controls.map((c) => (
               <Link
                 key={c.id}
                 to={`/controls/${c.id}`}
-                className="flex items-center gap-4 border-b border-gray-100 px-4 py-2 last:border-0 hover:bg-indigo-50/50"
+                className="flex items-center gap-4 border-b border-line/60 px-4 py-2 last:border-0 hover:bg-pine-50/60"
               >
-                <span className="w-24 shrink-0 font-mono text-sm font-semibold text-indigo-700">
+                <span className="id-plate w-24 shrink-0 text-sm">
                   {c.id}
                 </span>
                 <span className="min-w-0 flex-1 truncate text-sm text-gray-900">{c.name}</span>
@@ -251,7 +251,7 @@ export default function CrosswalkView() {
             <button
               type="button"
               onClick={() => setFilter(filter === 'shared' ? 'all' : 'shared')}
-              className={`rounded-lg border p-4 text-left ${filter === 'shared' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200 bg-white'}`}
+              className={`rounded-lg border p-4 text-left ${filter === 'shared' ? 'border-pine-500 ring-1 ring-pine-500' : 'border-line bg-white'}`}
             >
               <div className="text-2xl font-bold tabular-nums text-gray-900">
                 {ovl.shared.length}
@@ -261,7 +261,7 @@ export default function CrosswalkView() {
             <button
               type="button"
               onClick={() => setFilter(filter === 'onlyA' ? 'all' : 'onlyA')}
-              className={`rounded-lg border p-4 text-left ${filter === 'onlyA' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200 bg-white'}`}
+              className={`rounded-lg border p-4 text-left ${filter === 'onlyA' ? 'border-pine-500 ring-1 ring-pine-500' : 'border-line bg-white'}`}
             >
               <div className="text-2xl font-bold tabular-nums text-gray-900">
                 {ovl.onlyA.length}
@@ -271,7 +271,7 @@ export default function CrosswalkView() {
             <button
               type="button"
               onClick={() => setFilter(filter === 'onlyB' ? 'all' : 'onlyB')}
-              className={`rounded-lg border p-4 text-left ${filter === 'onlyB' ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200 bg-white'}`}
+              className={`rounded-lg border p-4 text-left ${filter === 'onlyB' ? 'border-pine-500 ring-1 ring-pine-500' : 'border-line bg-white'}`}
             >
               <div className="text-2xl font-bold tabular-nums text-gray-900">
                 {ovl.onlyB.length}
@@ -285,7 +285,7 @@ export default function CrosswalkView() {
               e.g. “already aligned to {cov.framework.name}? The{' '}
               <button
                 type="button"
-                className="text-indigo-600 hover:underline"
+                className="text-pine-600 hover:underline"
                 onClick={() => setFilter('onlyB')}
               >
                 {ovl.onlyB.length} controls unique to {covB.framework.name}
@@ -295,14 +295,14 @@ export default function CrosswalkView() {
             <button
               type="button"
               onClick={exportOverlap}
-              className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-paper"
             >
               Export CSV
             </button>
           </div>
 
-          <div className="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <div className="grid grid-cols-[6rem_1fr_1fr_1fr] gap-2 border-b border-gray-200 bg-gray-50 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <div className="mt-3 overflow-hidden rounded-lg border border-line bg-white">
+            <div className="grid grid-cols-[6rem_1fr_1fr_1fr] gap-2 border-b border-line bg-gray-50 px-4 py-2 eyebrow">
               <span>SCF #</span>
               <span>Control</span>
               <span className="truncate">{cov.framework.name}</span>
@@ -312,9 +312,9 @@ export default function CrosswalkView() {
               <Link
                 key={c.id}
                 to={`/controls/${c.id}`}
-                className="grid grid-cols-[6rem_1fr_1fr_1fr] items-center gap-2 border-b border-gray-100 px-4 py-2 text-sm last:border-0 hover:bg-indigo-50/50"
+                className="grid grid-cols-[6rem_1fr_1fr_1fr] items-center gap-2 border-b border-line/60 px-4 py-2 text-sm last:border-0 hover:bg-pine-50/60"
               >
-                <span className="font-mono font-semibold text-indigo-700">{c.id}</span>
+                <span className="id-plate">{c.id}</span>
                 <span className="truncate text-gray-900">{c.name}</span>
                 <span className="truncate font-mono text-xs text-gray-500">
                   {(c.mappings[fwA] ?? []).join(' · ') || '—'}

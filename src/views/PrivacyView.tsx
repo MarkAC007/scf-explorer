@@ -19,7 +19,7 @@ export default function PrivacyView() {
       </p>
       <div className="mt-6 space-y-4">
         {model.privacyPrinciples.map((p) => (
-          <section key={p.num} className="rounded-lg border border-gray-200 bg-white p-4">
+          <section key={p.num} className="rounded-lg border border-line bg-white p-4">
             <div className="flex items-center gap-2">
               <Badge tone="indigo">#{p.num}</Badge>
               <h2 className="font-semibold text-gray-900">{p.name}</h2>
@@ -31,7 +31,7 @@ export default function PrivacyView() {
                   <Link
                     key={cid}
                     to={`/controls/${cid}`}
-                    className="rounded bg-indigo-50 px-1.5 py-0.5 font-mono text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                    className="rounded bg-pine-50 px-1.5 py-0.5 font-mono text-xs font-medium text-pine-700 hover:bg-pine-100"
                   >
                     {cid}
                   </Link>

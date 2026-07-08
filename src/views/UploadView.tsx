@@ -30,12 +30,12 @@ export default function UploadView() {
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center p-8 text-center">
       <h1 className="text-3xl font-bold tracking-tight">
-        SCF <span className="text-indigo-600">Explorer</span>
+        SCF <span className="text-pine-600">Explorer</span>
       </h1>
       <p className="mt-2 text-gray-600">
         A read-only, feature-rich viewer for the{' '}
         <a
-          className="text-indigo-600 hover:underline"
+          className="text-pine-600 hover:underline"
           href="https://securecontrolsframework.com"
           target="_blank"
           rel="noreferrer"
@@ -50,7 +50,7 @@ export default function UploadView() {
         <div className="mt-8 w-full">
           <div className="h-2 w-full overflow-hidden rounded bg-gray-200">
             <div
-              className="h-full bg-indigo-600 transition-all"
+              className="h-full bg-pine-600 transition-all"
               style={{ width: `${progress?.pct ?? 0}%` }}
             />
           </div>
@@ -59,7 +59,7 @@ export default function UploadView() {
       ) : (
         <label
           className={`mt-8 block w-full cursor-pointer rounded-xl border-2 border-dashed p-10 transition ${
-            dragOver ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 bg-white hover:border-indigo-400'
+            dragOver ? 'border-pine-500 bg-pine-50' : 'border-gray-300 bg-white hover:border-pine-500'
           }`}
           onDragOver={(e) => {
             e.preventDefault()
@@ -95,7 +95,7 @@ export default function UploadView() {
       <p className="mt-6 text-sm text-gray-500">
         Get the latest workbook from the{' '}
         <a
-          className="text-indigo-600 hover:underline"
+          className="text-pine-600 hover:underline"
           href="https://github.com/securecontrolsframework/securecontrolsframework/releases"
           target="_blank"
           rel="noreferrer"

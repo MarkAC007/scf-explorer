@@ -33,7 +33,7 @@ export default function ControlDetailView() {
     return (
       <div className="p-12 text-center text-gray-500">
         Control “{id}” not found in this workbook.{' '}
-        <Link to="/controls" className="text-indigo-600 hover:underline">
+        <Link to="/controls" className="text-pine-600 hover:underline">
           Browse controls
         </Link>
       </div>
@@ -67,26 +67,26 @@ export default function ControlDetailView() {
   return (
     <div className="mx-auto max-w-5xl p-8">
       <div className="flex items-center justify-between text-sm">
-        <Link to="/controls" className="text-indigo-600 hover:underline">
+        <Link to="/controls" className="text-pine-600 hover:underline">
           ← All controls
         </Link>
         <div className="flex gap-3">
           {prev && (
-            <Link to={`/controls/${prev.id}`} className="text-gray-500 hover:text-indigo-600">
+            <Link to={`/controls/${prev.id}`} className="text-gray-500 hover:text-pine-600">
               ← {prev.id}
             </Link>
           )}
           {next && (
-            <Link to={`/controls/${next.id}`} className="text-gray-500 hover:text-indigo-600">
+            <Link to={`/controls/${next.id}`} className="text-gray-500 hover:text-pine-600">
               {next.id} →
             </Link>
           )}
         </div>
       </div>
 
-      <header className="mt-4 rounded-lg border border-gray-200 bg-white p-6">
+      <header className="mt-4 rounded-lg border border-line bg-white p-6">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="font-mono text-xl font-bold text-indigo-700">{control.id}</span>
+          <span className="id-plate text-xl">{control.id}</span>
           <h1 className="text-xl font-semibold text-gray-900">{control.name}</h1>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -107,7 +107,7 @@ export default function ControlDetailView() {
         </div>
         <p className="mt-4 text-gray-700">{control.description}</p>
         {control.question && (
-          <div className="mt-4 rounded border-l-4 border-indigo-300 bg-indigo-50 p-3 text-sm text-indigo-900">
+          <div className="mt-4 rounded border-l-4 border-pine-300 bg-pine-50 p-3 text-sm text-pine-700">
             <span className="font-semibold">Control question:</span> {control.question}
           </div>
         )}
@@ -139,7 +139,7 @@ export default function ControlDetailView() {
               content: (
                 <ol className="space-y-3">
                   {control.maturity.map((m) => (
-                    <li key={m.level} className="flex gap-4 rounded-lg border border-gray-200 bg-white p-4">
+                    <li key={m.level} className="flex gap-4 rounded-lg border border-line bg-white p-4">
                       <div className="flex flex-col items-center">
                         <span
                           className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold text-white ${LEVEL_TONES[m.level]}`}
@@ -173,19 +173,19 @@ export default function ControlDetailView() {
                   />
                   {filteredGroups.map((g) => (
                     <section key={g.geography} className="mb-6">
-                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <h3 className="mb-2 eyebrow">
                         {g.geography}
                       </h3>
                       <div className="space-y-2">
                         {g.items.map(({ framework, refs }) => (
                           <div
                             key={framework.id}
-                            className="rounded-lg border border-gray-200 bg-white p-3"
+                            className="rounded-lg border border-line bg-white p-3"
                           >
                             <div className="flex items-baseline justify-between gap-2">
                               <Link
                                 to={`/crosswalk?fw=${framework.id}`}
-                                className="text-sm font-medium text-indigo-700 hover:underline"
+                                className="text-sm font-medium text-pine-700 hover:underline"
                               >
                                 {framework.name}
                               </Link>
@@ -219,12 +219,12 @@ export default function ControlDetailView() {
               content: (
                 <div className="grid gap-6 lg:grid-cols-2">
                   <section>
-                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <h3 className="mb-2 eyebrow">
                       Risks this control mitigates
                     </h3>
                     <div className="space-y-2">
                       {risks.map((r) => (
-                        <div key={r!.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                        <div key={r!.id} className="rounded-lg border border-line bg-white p-3">
                           <div className="flex items-center gap-2">
                             <Badge tone="red">{r!.id}</Badge>
                             <span className="text-sm font-medium text-gray-900">{r!.name}</span>
@@ -236,12 +236,12 @@ export default function ControlDetailView() {
                     </div>
                   </section>
                   <section>
-                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <h3 className="mb-2 eyebrow">
                       Threats it defends against
                     </h3>
                     <div className="space-y-2">
                       {threats.map((t) => (
-                        <div key={t!.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                        <div key={t!.id} className="rounded-lg border border-line bg-white p-3">
                           <div className="flex items-center gap-2">
                             <Badge tone="amber">{t!.id}</Badge>
                             <span className="text-sm font-medium text-gray-900">{t!.name}</span>
@@ -262,7 +262,7 @@ export default function ControlDetailView() {
               content: (
                 <div className="space-y-2">
                   {aos.map((ao) => (
-                    <div key={ao.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                    <div key={ao.id} className="rounded-lg border border-line bg-white p-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-mono text-xs font-semibold text-gray-500">{ao.id}</span>
                         {ao.rigor != null && (
@@ -291,16 +291,16 @@ export default function ControlDetailView() {
                 <div>
                   {comp ? (
                     <>
-                      <p className="rounded-lg border border-gray-200 bg-white p-3 text-sm text-gray-700">
+                      <p className="rounded-lg border border-line bg-white p-3 text-sm text-gray-700">
                         {comp.riskNote}
                       </p>
                       <div className="mt-3 space-y-2">
                         {comp.options.map((o) => (
-                          <div key={o.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                          <div key={o.id} className="rounded-lg border border-line bg-white p-3">
                             <div className="flex items-center gap-2">
                               <Link
                                 to={`/controls/${o.id}`}
-                                className="font-mono text-sm font-semibold text-indigo-700 hover:underline"
+                                className="font-mono text-sm font-semibold text-pine-700 hover:underline"
                               >
                                 {o.id}
                               </Link>
@@ -326,7 +326,7 @@ export default function ControlDetailView() {
               content: (
                 <div className="space-y-2">
                   {erl.map((e) => (
-                    <div key={e.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                    <div key={e.id} className="rounded-lg border border-line bg-white p-3">
                       <div className="flex items-center gap-2">
                         <Badge tone="green">{e.id}</Badge>
                         <span className="text-sm font-medium text-gray-900">{e.artifact}</span>
@@ -347,7 +347,7 @@ export default function ControlDetailView() {
               content: (
                 <div className="space-y-2">
                   {control.solutions.map((s) => (
-                    <div key={s.sizeBand} className="rounded-lg border border-gray-200 bg-white p-3">
+                    <div key={s.sizeBand} className="rounded-lg border border-line bg-white p-3">
                       <h3 className="text-sm font-semibold text-gray-900">{s.sizeBand}</h3>
                       <p className="mt-1 whitespace-pre-line text-sm text-gray-600">{s.text}</p>
                     </div>

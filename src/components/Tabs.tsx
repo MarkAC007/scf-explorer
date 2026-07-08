@@ -13,7 +13,7 @@ export default function Tabs({ tabs }: { tabs: TabDef[] }) {
 
   return (
     <div>
-      <div role="tablist" className="flex flex-wrap gap-1 border-b border-gray-200">
+      <div role="tablist" className="flex flex-wrap gap-1 border-b border-line">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -23,7 +23,7 @@ export default function Tabs({ tabs }: { tabs: TabDef[] }) {
             onClick={() => setActive(t.id)}
             className={`rounded-t px-3 py-2 text-sm font-medium ${
               t.id === current.id
-                ? 'border-b-2 border-indigo-600 text-indigo-700'
+                ? 'border-b-2 border-pine-600 text-pine-700'
                 : 'text-gray-500 hover:text-gray-800'
             }`}
           >

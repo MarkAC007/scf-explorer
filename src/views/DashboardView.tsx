@@ -13,7 +13,7 @@ export default function DashboardView() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">
           Secure Controls Framework{' '}
-          <span className="rounded bg-indigo-100 px-2 py-0.5 text-sm font-semibold text-indigo-700 align-middle">
+          <span className="rounded bg-pine-100 px-2 py-0.5 text-sm font-semibold text-pine-700 align-middle">
             {model.version}
           </span>
         </h1>
@@ -42,10 +42,10 @@ export default function DashboardView() {
             <Link
               key={d.id}
               to={`/controls?domain=${d.id}`}
-              className="group rounded-lg border border-gray-200 bg-white p-4 transition hover:border-indigo-300 hover:shadow-sm"
+              className="group rounded-lg border border-line bg-white p-4 transition hover:border-pine-300 hover:shadow-sm"
             >
               <div className="flex items-baseline justify-between">
-                <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-gray-700 group-hover:bg-indigo-100 group-hover:text-indigo-700">
+                <span className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-gray-700 group-hover:bg-pine-100 group-hover:text-pine-700">
                   {d.id}
                 </span>
                 <span className="text-xs text-gray-400">

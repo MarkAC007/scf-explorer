@@ -24,10 +24,10 @@ export default function SourcesView() {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([geo, fws]) => (
           <section key={geo} className="mt-8">
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <h2 className="mb-2 eyebrow">
               {geo}
             </h2>
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div className="overflow-hidden rounded-lg border border-line bg-white">
               {fws
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((f) => {
@@ -35,12 +35,12 @@ export default function SourcesView() {
                   return (
                     <div
                       key={f.id}
-                      className="flex items-center gap-3 border-b border-gray-100 px-4 py-2 text-sm last:border-0"
+                      className="flex items-center gap-3 border-b border-line/60 px-4 py-2 text-sm last:border-0"
                     >
                       {count > 0 ? (
                         <Link
                           to={`/crosswalk?fw=${f.id}`}
-                          className="min-w-0 flex-1 truncate font-medium text-indigo-700 hover:underline"
+                          className="min-w-0 flex-1 truncate font-medium text-pine-700 hover:underline"
                         >
                           {f.name}
                         </Link>
@@ -59,7 +59,7 @@ export default function SourcesView() {
                             href={f.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-indigo-600 hover:underline"
+                            className="text-pine-600 hover:underline"
                           >
                             source ↗
                           </a>
@@ -69,7 +69,7 @@ export default function SourcesView() {
                             href={f.strmUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-indigo-600 hover:underline"
+                            className="text-pine-600 hover:underline"
                           >
                             STRM ↗
                           </a>

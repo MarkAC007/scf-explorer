@@ -3,7 +3,7 @@ import type { ParseReport } from '../model/types'
 export default function ParseReportPanel({ report }: { report: ParseReport }) {
   const ok = report.warnings.length === 0 && report.unmappedColumns.length === 0
   return (
-    <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 text-left text-sm">
+    <div className="mt-6 rounded-lg border border-line bg-white p-4 text-left text-sm">
       <h3 className="font-semibold text-gray-800">
         Parse report — SCF {report.version} {ok && <span className="text-green-600">✓ clean</span>}
       </h3>

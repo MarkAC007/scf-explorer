@@ -1,1 +1,84 @@
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Space Grotesk Variable", var(--font-sans);
+
+  /* Ink — the register's cover */
+  --color-ink-950: #141b28;
+  --color-ink-900: #1a2332;
+  --color-ink-800: #232e40;
+  --color-ink-700: #2e3b50;
+
+  /* Pine — the single accent */
+  --color-pine-50: #eef5f3;
+  --color-pine-100: #d8e9e5;
+  --color-pine-300: #7fb5ac;
+  --color-pine-500: #1f8377;
+  --color-pine-600: #0f6b62;
+  --color-pine-700: #0a544d;
+
+  /* Rust — risk semantics only */
+  --color-rust-100: #f3ded8;
+  --color-rust-600: #b3402a;
+  --color-rust-700: #93331f;
+
+  /* Paper + hairlines */
+  --color-paper: #f7f8f6;
+  --color-line: #dde1dd;
+}
+
+@layer base {
+  html {
+    @apply bg-paper text-gray-800 antialiased;
+  }
+  h1, h2 {
+    font-family: var(--font-display);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-pine-500);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-pine-100);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Registry plate: the identity device for every SCF control id */
+  .id-plate {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--color-ink-900);
+  }
+  .id-plate::before {
+    content: "";
+    display: inline-block;
+    width: 3px;
+    height: 0.85em;
+    margin-right: 0.45em;
+    background: var(--color-pine-600);
+    vertical-align: -0.08em;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5c6670;
+  }
+}

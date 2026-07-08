@@ -20,7 +20,7 @@ export default function BaselinesView() {
             <Link
               key={b.id}
               to={`/controls?baseline=${b.id}`}
-              className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-indigo-300 hover:shadow-sm"
+              className="rounded-lg border border-line bg-white p-4 transition hover:border-pine-300 hover:shadow-sm"
             >
               <div className="font-medium text-gray-900">{b.label}</div>
               <div className="mt-1 text-sm text-gray-500">

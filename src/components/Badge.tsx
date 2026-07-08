@@ -1,9 +1,9 @@
 const TONES: Record<string, string> = {
   gray: 'bg-gray-100 text-gray-700',
-  indigo: 'bg-indigo-100 text-indigo-700',
+  indigo: 'bg-pine-100 text-pine-700',
   green: 'bg-green-100 text-green-700',
   amber: 'bg-amber-100 text-amber-800',
-  red: 'bg-red-100 text-red-700',
+  red: 'bg-rust-100 text-rust-700',
   sky: 'bg-sky-100 text-sky-700',
 }
 

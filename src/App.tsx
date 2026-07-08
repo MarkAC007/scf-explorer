@@ -49,9 +49,12 @@ function Layout() {
   return (
     <div className="flex min-h-screen">
       {status === 'ready' && (
-        <aside className="flex w-52 shrink-0 flex-col border-r border-gray-200 bg-white">
-          <NavLink to="/" className="px-4 py-4 text-lg font-bold tracking-tight">
-            SCF <span className="text-indigo-600">Explorer</span>
+        <aside className="flex w-52 shrink-0 flex-col bg-ink-900 text-gray-400">
+          <NavLink
+            to="/"
+            className="px-4 py-5 font-display text-lg font-bold tracking-tight text-white"
+          >
+            SCF <span className="text-pine-300">Explorer</span>
           </NavLink>
           <nav className="flex-1 space-y-0.5 px-2" aria-label="Main">
             {NAV.map((n) => (
@@ -60,10 +63,10 @@ function Layout() {
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) =>
-                  `block rounded px-3 py-1.5 text-sm ${
+                  `block border-l-2 px-3 py-1.5 text-sm transition-colors ${
                     isActive
-                      ? 'bg-indigo-50 font-medium text-indigo-700'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'border-pine-500 bg-ink-800 font-medium text-white'
+                      : 'border-transparent hover:bg-ink-800/60 hover:text-gray-200'
                   }`
                 }
               >
@@ -71,18 +74,18 @@ function Layout() {
               </NavLink>
             ))}
           </nav>
-          <div className="border-t border-gray-200 p-3 text-xs text-gray-500">
-            <div className="font-medium text-gray-700">SCF {model?.version}</div>
-            <div className="truncate" title={model?.sourceFileName}>
+          <div className="border-t border-ink-700 p-3 text-xs">
+            <div className="font-mono font-semibold text-pine-300">SCF {model?.version}</div>
+            <div className="truncate text-gray-500" title={model?.sourceFileName}>
               {model?.sourceFileName}
             </div>
-            <NavLink to="/upload" className="mt-1 block text-indigo-600 hover:underline">
+            <NavLink to="/upload" className="mt-1 block text-gray-300 hover:text-white hover:underline">
               Replace workbook
             </NavLink>
           </div>
         </aside>
       )}
-      <main className="min-w-0 flex-1 bg-gray-50">
+      <main className="min-w-0 flex-1 bg-paper">
         <Outlet />
       </main>
     </div>

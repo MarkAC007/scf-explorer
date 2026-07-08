@@ -83,9 +83,9 @@ export default function ControlsView() {
 
   return (
     <div className="flex h-screen">
-      <aside className="w-64 shrink-0 space-y-5 overflow-y-auto border-r border-gray-200 bg-white p-4">
+      <aside className="w-64 shrink-0 space-y-5 overflow-y-auto border-r border-line bg-white p-4">
         <div>
-          <label htmlFor="f-domain" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="f-domain" className="eyebrow">
             Domain
           </label>
           <select
@@ -104,7 +104,7 @@ export default function ControlsView() {
         </div>
 
         <fieldset>
-          <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500">PPTDF</legend>
+          <legend className="eyebrow">PPTDF</legend>
           <div className="mt-1 space-y-1">
             {PPTDF.map((p) => (
               <label key={p} className="flex items-center gap-2 text-sm text-gray-700">
@@ -120,7 +120,7 @@ export default function ControlsView() {
         </fieldset>
 
         <fieldset>
-          <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500">CSF Function</legend>
+          <legend className="eyebrow">CSF Function</legend>
           <div className="mt-1 space-y-1">
             {CSF.map((f) => (
               <label key={f} className="flex items-center gap-2 text-sm text-gray-700">
@@ -136,7 +136,7 @@ export default function ControlsView() {
         </fieldset>
 
         <div>
-          <label htmlFor="f-baseline" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="f-baseline" className="eyebrow">
             Baseline
           </label>
           <select
@@ -155,7 +155,7 @@ export default function ControlsView() {
         </div>
 
         <div>
-          <label htmlFor="f-framework" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="f-framework" className="eyebrow">
             Mapped to framework
           </label>
           <select
@@ -174,7 +174,7 @@ export default function ControlsView() {
         </div>
 
         <div>
-          <label htmlFor="f-weight" className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <label htmlFor="f-weight" className="eyebrow">
             Min weighting: {filters.weightMin ?? 1}
           </label>
           <input
@@ -190,7 +190,7 @@ export default function ControlsView() {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-line bg-white px-4 py-3">
           <input
             type="search"
             placeholder="Search controls — id, name, description, question…"
@@ -204,7 +204,7 @@ export default function ControlsView() {
           <button
             type="button"
             onClick={exportCsv}
-            className="ml-auto rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            className="ml-auto rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-paper"
           >
             Export CSV
           </button>
@@ -218,10 +218,10 @@ export default function ControlsView() {
                 <Link
                   key={c.id}
                   to={`/controls/${c.id}`}
-                  className="absolute left-0 flex w-full items-center gap-4 border-b border-gray-100 bg-white px-4 hover:bg-indigo-50/50"
+                  className="absolute left-0 flex w-full items-center gap-4 border-b border-line/60 bg-white px-4 hover:bg-pine-50/60"
                   style={{ top: vi.start, height: vi.size }}
                 >
-                  <span className="w-24 shrink-0 font-mono text-sm font-semibold text-indigo-700">
+                  <span className="id-plate w-24 shrink-0 text-sm">
                     {c.id}
                   </span>
                   <span className="min-w-0 flex-1">

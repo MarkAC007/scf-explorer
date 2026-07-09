@@ -1,17 +1,17 @@
 # SCF Explorer
 
 [![CI](https://github.com/MarkAC007/scf-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/MarkAC007/scf-explorer/actions/workflows/ci.yml)
-[![Live demo](https://img.shields.io/badge/live_demo-markac007.github.io%2Fscf--explorer-1f8377)](https://markac007.github.io/scf-explorer/)
+[![Live demo](https://img.shields.io/badge/live_demo-scfcontrolsexplorer.app-1f8377)](https://scfcontrolsexplorer.app/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![SCF 2026.1.1](https://img.shields.io/badge/SCF-2026.1.1-141b28)](https://github.com/securecontrolsframework/securecontrolsframework/releases)
-[![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8)](https://markac007.github.io/scf-explorer/)
+[![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8)](https://scfcontrolsexplorer.app/)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
 A read-only, feature-rich web viewer for the [Secure Controls Framework](https://securecontrolsframework.com) (SCF) — the free meta-framework of 1,400+ cybersecurity, privacy and resilience controls mapped to ~250 laws, regulations and frameworks.
 
 Upload the official SCF Excel workbook and browse everything it contains in a fast, beautiful interface. **Everything runs in your browser — the workbook is parsed client-side and never leaves your machine.**
 
-**[Visit the site](https://markac007.github.io/scf-explorer/)** · **[Open the app directly](https://markac007.github.io/scf-explorer/app/)**
+**[Visit the site](https://scfcontrolsexplorer.app/)** · **[Open the app directly](https://scfcontrolsexplorer.app/app/)**
 
 ![Dashboard](docs/screenshots/dashboard.png)
 

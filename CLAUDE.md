@@ -6,11 +6,13 @@ IndexedDB, and renders controls, ~250 framework mappings, maturity levels, risks
 assessment objectives, evidence references, and named "program scopes".
 
 - **Repo:** github.com/MarkAC007/scf-explorer (public, MIT) · owner Mark Almeida-Cardy
-- **Live:** https://markac007.github.io/scf-explorer/ = marketing landing page (static
+- **Live:** https://scfcontrolsexplorer.app/ = marketing landing page (static
   `index.html` + `src/landing/landing.css`, no React); the app itself is at
-  https://markac007.github.io/scf-explorer/app/ (GitHub Pages, deployed by CI on main).
-  Legacy `…/scf-explorer/#/...` links and installed PWAs are redirected to `app/` by an
-  inline shim in the landing page; PWA manifest `start_url`/`scope` point at `app/`.
+  https://scfcontrolsexplorer.app/app/ (GitHub Pages, deployed by CI on main).
+  Legacy `markac007.github.io/scf-explorer/…` URLs 301-redirect to the custom domain;
+  root-`#/` links and installed PWAs are then redirected to `app/` by an inline shim in
+  the landing page. PWA manifest `start_url`/`scope` point at `app/`. Custom domain DNS
+  is a Cloudflare CNAME (apex, DNS-only) → markac007.github.io; `public/CNAME` pins it.
 - **Design docs:** `docs/superpowers/specs/` (v1 design, program-scopes v2), plans in `docs/superpowers/plans/`
 
 ## Hard constraints — never violate

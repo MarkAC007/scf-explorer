@@ -1,6 +1,6 @@
 import { chromium } from '@playwright/test'
 
-const URL = 'https://markac007.github.io/scf-explorer/app/'
+const URL = 'https://scfcontrolsexplorer.app/app/'
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
 

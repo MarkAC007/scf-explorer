@@ -14,11 +14,11 @@ const server = createServer((req, res) => {
 mkdirSync('/tmp/scf-shots', { recursive: true })
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
-await page.goto('http://localhost:4198/#/upload')
+await page.goto('http://localhost:4198/app/#/upload')
 await page.setInputFiles('[data-testid="file-input"]', '/home/mark/scf-releases/2026.1.1/Secure.Controls.Framework.SCF.-.2026.1.1.xlsx')
 await page.waitForURL('**/#/', { timeout: 120000 })
 
-await page.goto('http://localhost:4198/#/program?fw=iso-27001-2022&fw=emea-eu-nis2&fw=aicpa-tsc-2017-2022-used-for-soc-2')
+await page.goto('http://localhost:4198/app/#/program?fw=iso-27001-2022&fw=emea-eu-nis2&fw=aicpa-tsc-2017-2022-used-for-soc-2')
 await page.reload()
 await page.waitForSelector('[data-testid="selected-frameworks"]', { timeout: 30000 })
 await page.waitForTimeout(1500)

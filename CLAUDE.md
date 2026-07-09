@@ -6,7 +6,11 @@ IndexedDB, and renders controls, ~250 framework mappings, maturity levels, risks
 assessment objectives, evidence references, and named "program scopes".
 
 - **Repo:** github.com/MarkAC007/scf-explorer (public, MIT) · owner Mark Almeida-Cardy
-- **Live:** https://markac007.github.io/scf-explorer/ (GitHub Pages, deployed by CI on main)
+- **Live:** https://markac007.github.io/scf-explorer/ = marketing landing page (static
+  `index.html` + `src/landing/landing.css`, no React); the app itself is at
+  https://markac007.github.io/scf-explorer/app/ (GitHub Pages, deployed by CI on main).
+  Legacy `…/scf-explorer/#/...` links and installed PWAs are redirected to `app/` by an
+  inline shim in the landing page; PWA manifest `start_url`/`scope` point at `app/`.
 - **Design docs:** `docs/superpowers/specs/` (v1 design, program-scopes v2), plans in `docs/superpowers/plans/`
 
 ## Hard constraints — never violate

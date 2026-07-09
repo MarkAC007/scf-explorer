@@ -11,6 +11,8 @@ A read-only, feature-rich web viewer for the [Secure Controls Framework](https:/
 
 Upload the official SCF Excel workbook and browse everything it contains in a fast, beautiful interface. **Everything runs in your browser — the workbook is parsed client-side and never leaves your machine.**
 
+**[Visit the site](https://markac007.github.io/scf-explorer/)** · **[Open the app directly](https://markac007.github.io/scf-explorer/app/)**
+
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ## Why

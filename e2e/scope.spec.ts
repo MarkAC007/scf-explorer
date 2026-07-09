@@ -6,7 +6,7 @@ const FIXTURE = join(import.meta.dirname, '../tests/fixtures/scf-fixture.xlsx')
 test('build a scope → activate → app reshapes → share URL round trip', async ({
   page,
 }) => {
-  await page.goto('/#/upload')
+  await page.goto('/app/#/upload')
   await page.setInputFiles('[data-testid="file-input"]', FIXTURE)
   await page.waitForURL('**/#/', { timeout: 60_000 })
 
@@ -36,11 +36,11 @@ test('build a scope → activate → app reshapes → share URL round trip', asy
   expect(parseInt(all!)).toBeGreaterThan(parseInt(scoped!))
 
   // Control detail shows membership banner
-  await page.goto('/#/controls/GOV-01')
+  await page.goto('/app/#/controls/GOV-01')
   await expect(page.getByTestId('scope-banner')).toContainText(/In scope|Not in/)
 
   // Share URL round trip: fresh navigation with fw params seeds the builder
-  await page.goto('/#/program?fw=nist-800-53-r5')
+  await page.goto('/app/#/program?fw=nist-800-53-r5')
   await page.reload()
   await expect(page.getByTestId('selected-frameworks')).toContainText(/800-53/)
 

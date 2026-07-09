@@ -27,7 +27,7 @@ const check = (label, got, want) => {
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
-await page.goto('http://localhost:4196/#/upload')
+await page.goto('http://localhost:4196/app/#/upload')
 await page.setInputFiles('[data-testid="file-input"]', XLSX)
 await page.waitForURL('**/#/', { timeout: 120000 })
 
@@ -44,14 +44,14 @@ check('threats', await stat('Threats'), GT.threats.count)
 check('assessment objectives', await stat('Assessment objectives'), GT.aos.count)
 
 // --- Parse report is clean ---
-await page.goto('http://localhost:4196/#/upload')
+await page.goto('http://localhost:4196/app/#/upload')
 await page.waitForTimeout(400)
 check('parse report clean', await page.getByText('✓ clean').isVisible(), true)
 
 // --- Sample control details rendered vs truth ---
 for (const id of ['GOV-01', 'IAC-01', 'TPM-01']) {
   const t = GT.samples[id]
-  await page.goto(`http://localhost:4196/#/controls/${id}`)
+  await page.goto(`http://localhost:4196/app/#/controls/${id}`)
   await page.waitForTimeout(400)
   const desc = (await page.locator('header p').first().textContent())?.trim()
   check(`${id} description exact`, desc === t.description.replace(/\s+/g, ' ').trim() || desc === t.description, true)
@@ -66,28 +66,28 @@ for (const id of ['GOV-01', 'IAC-01', 'TPM-01']) {
 }
 
 // --- Weighting-0 control renders (regression for TDA-11.2) ---
-await page.goto('http://localhost:4196/#/controls/TDA-11.2')
+await page.goto('http://localhost:4196/app/#/controls/TDA-11.2')
 await page.waitForTimeout(400)
 const w0 = await page.locator('[title^="Relative control weighting"]').first().getAttribute('title')
 check('TDA-11.2 weighting 0 shown', w0?.includes('0/10'), true)
 
 // --- Privacy principles count ---
-await page.goto('http://localhost:4196/#/privacy')
+await page.goto('http://localhost:4196/app/#/privacy')
 await page.waitForTimeout(600)
 check('privacy principles rendered', await page.locator('section.rounded-lg').count(), GT.privacy.principles)
 
 // --- Risk / threat catalogs render every entry ---
-await page.goto('http://localhost:4196/#/risks')
+await page.goto('http://localhost:4196/app/#/risks')
 await page.waitForTimeout(600)
 let ids = await page.locator('span.inline-block').allTextContents()
 check('risk entries rendered', ids.filter((x) => /^R-/.test(x)).length, GT.risks.count)
-await page.goto('http://localhost:4196/#/threats')
+await page.goto('http://localhost:4196/app/#/threats')
 await page.waitForTimeout(600)
 ids = await page.locator('span.inline-block').allTextContents()
 check('threat entries rendered', ids.filter((x) => /^(NT|MT)-/.test(x)).length, GT.threats.count)
 
 // --- Controls browser shows full count; GovRAMP Low vs Low+ now distinct ---
-await page.goto('http://localhost:4196/#/controls')
+await page.goto('http://localhost:4196/app/#/controls')
 await page.waitForTimeout(600)
 check('browser control count', (await page.getByTestId('control-count').textContent())?.replace(/[^\d]/g, ''), GT.mainSheet.controls)
 const fwOptions = await page.locator('#f-framework option').allTextContents()

@@ -4,7 +4,7 @@ import { join } from 'node:path'
 const FIXTURE = join(import.meta.dirname, '../tests/fixtures/scf-fixture.xlsx')
 
 test('upload → browse → detail → crosswalk with the fixture workbook', async ({ page }) => {
-  await page.goto('/#/upload')
+  await page.goto('/app/#/upload')
   await expect(page.getByText('Drop the SCF workbook here')).toBeVisible()
 
   await page.setInputFiles('[data-testid="file-input"]', FIXTURE)
@@ -26,7 +26,7 @@ test('upload → browse → detail → crosswalk with the fixture workbook', asy
   await expect(page.getByText(/NIST SP 800-53/i).first()).toBeVisible()
 
   // Crosswalk overlap
-  await page.goto('/#/crosswalk?fw=iso-27002-2022&fwB=nist-800-53-r5')
+  await page.goto('/app/#/crosswalk?fw=iso-27002-2022&fwB=nist-800-53-r5')
   await expect(page.getByText('shared SCF controls')).toBeVisible()
 
   // CSV export produces a download
@@ -37,7 +37,7 @@ test('upload → browse → detail → crosswalk with the fixture workbook', asy
 })
 
 test('rejects a non-SCF xlsx politely', async ({ page }) => {
-  await page.goto('/#/upload')
+  await page.goto('/app/#/upload')
   await page.setInputFiles('[data-testid="file-input"]', {
     name: 'nonsense.xlsx',
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

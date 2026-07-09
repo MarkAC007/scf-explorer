@@ -43,7 +43,7 @@ jobs:
       - name: E2E (fixture)
         run: |
           npx playwright install --with-deps chromium
-          npx playwright test e2e/fixture.spec.ts e2e/scope.spec.ts
+          npx playwright test e2e/fixture.spec.ts e2e/scope.spec.ts e2e/landing.spec.ts
         if: hashFiles('e2e/fixture.spec.ts') != ''
 
   deploy:

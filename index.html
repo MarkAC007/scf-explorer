@@ -2,14 +2,303 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Front-door shim: old share links / bookmarks carry app hash routes on the
+      // root URL, and already-installed PWAs may still launch at the root scope.
+      // Both must land in the app, before anything renders.
+      ;(function () {
+        var h = location.hash
+        if (h.indexOf('#/') === 0 || matchMedia('(display-mode: standalone)').matches) {
+          location.replace('app/' + h)
+        }
+      })()
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1a2332" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <title>SCF Explorer</title>
+    <title>SCF Explorer — explore the Secure Controls Framework in your browser</title>
+    <meta
+      name="description"
+      content="Free, open-source, read-only viewer for the Secure Controls Framework. Upload the official SCF workbook and explore every control, ~250 framework mappings, maturity levels, risks and threats — 100% client-side, no accounts, no backend."
+    />
+    <meta property="og:title" content="SCF Explorer" />
+    <meta
+      property="og:description"
+      content="The Secure Controls Framework, finally explorable. Open source, 100% client-side — your workbook never leaves your browser."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://markac007.github.io/scf-explorer/" />
+    <link rel="stylesheet" href="/src/landing/landing.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="hero">
+      <nav class="nav">
+        <a class="wordmark" href="./">
+          <img src="/favicon.svg" alt="" width="22" height="22" />
+          <span>SCF&nbsp;Explorer</span>
+        </a>
+        <div class="nav-links">
+          <a href="https://github.com/MarkAC007/scf-explorer">GitHub</a>
+          <a class="nav-cta" href="app/">Open the app</a>
+        </div>
+      </nav>
+
+      <div class="hero-inner">
+        <p class="eyebrow">Open source · 100% client-side · Read-only viewer</p>
+        <h1>The Secure Controls Framework, finally&nbsp;<em>explorable</em>.</h1>
+        <p class="sub">
+          Upload the official SCF workbook and explore every control, ~250 framework
+          mappings, maturity criteria, risks and threats — parsed entirely in your
+          browser. No accounts. No backend. Your data never leaves the machine.
+        </p>
+        <div class="ctas">
+          <a class="btn-primary" href="app/">Open the app <span aria-hidden="true">→</span></a>
+          <a class="btn-ghost" href="https://github.com/MarkAC007/scf-explorer">View on GitHub</a>
+        </div>
+        <div class="plates" aria-label="A few of the mapped frameworks">
+          <span class="plate-dark">NIST 800-53</span>
+          <span class="plate-dark">ISO 27001</span>
+          <span class="plate-dark">SOC 2</span>
+          <span class="plate-dark">PCI DSS</span>
+          <span class="plate-dark">HIPAA</span>
+          <span class="plate-dark">GDPR</span>
+          <span class="plate-dark">NIS2</span>
+          <span class="plate-dark">+ 240 more</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="how">
+        <div class="section-inner">
+          <p class="eyebrow">How it works</p>
+          <h2>Bring your own workbook.</h2>
+          <div class="steps">
+            <div class="step reveal">
+              <span class="n">01</span>
+              <h3>Get the official SCF</h3>
+              <p>
+                Download the free Excel workbook from the
+                <a href="https://securecontrolsframework.com">Secure Controls Framework Council</a>
+                — the licensing stays theirs, the data stays yours.
+              </p>
+            </div>
+            <div class="step reveal">
+              <span class="n">02</span>
+              <h3>Drop it in</h3>
+              <p>
+                A Web Worker parses every sheet in seconds and caches the model locally in
+                IndexedDB. Nothing is uploaded — there's nowhere to upload it to.
+              </p>
+            </div>
+            <div class="step reveal">
+              <span class="n">03</span>
+              <h3>Explore everything</h3>
+              <p>
+                Controls, crosswalks, maturity levels, risks, threats, assessment
+                objectives, evidence — indexed, searchable, linked.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features">
+        <div class="section-inner">
+          <p class="eyebrow">What's inside</p>
+          <h2>Every angle of the framework.</h2>
+
+          <div class="vignette reveal">
+            <div class="copy">
+              <h3>Controls, in full detail</h3>
+              <p>
+                Each control gets a registry-style plate with its description, maturity
+                criteria across all six levels, mapped risks and threats, and assessment
+                objectives — one page, everything linked.
+              </p>
+            </div>
+            <div class="frame" aria-hidden="true">
+              <div class="frame-bar"><i></i><i></i><i></i></div>
+              <div class="frame-body">
+                <div class="frame-title">
+                  <span class="id-plate">XYZ-01.4</span>
+                  <span class="frame-name">Example Control Name</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t">Maturity L0–L5</span>
+                  <div class="bar"><i style="width: 65%"></i></div>
+                </div>
+                <div class="mockrow">
+                  <span class="t">Mapped risks</span>
+                  <span class="chip rust">R-XX.1</span>
+                  <span class="chip rust">R-XX.4</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t">Frameworks</span>
+                  <span class="chip">NIST</span>
+                  <span class="chip">ISO</span>
+                  <span class="chip">SOC 2</span>
+                  <span class="chip">+12</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vignette flip reveal">
+            <div class="copy">
+              <h3>Crosswalk ~250 frameworks</h3>
+              <p>
+                See how any two frameworks relate through the SCF — which controls satisfy
+                both, where the gaps are, and how coverage distributes across domains.
+              </p>
+            </div>
+            <div class="frame" aria-hidden="true">
+              <div class="frame-bar"><i></i><i></i><i></i></div>
+              <div class="frame-body">
+                <div class="mockrow">
+                  <span class="t w">Governance</span>
+                  <div class="bar"><i style="width: 88%"></i></div>
+                  <span class="chip">42</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t w">Asset Mgmt</span>
+                  <div class="bar"><i style="width: 71%"></i></div>
+                  <span class="chip">31</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t w">Cryptography</span>
+                  <div class="bar"><i style="width: 54%"></i></div>
+                  <span class="chip">18</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t w">Incident Resp.</span>
+                  <div class="bar"><i style="width: 63%"></i></div>
+                  <span class="chip">24</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vignette reveal">
+            <div class="copy">
+              <h3>Program scopes &amp; share links</h3>
+              <p>
+                Name a scope, pick your frameworks, and get live coverage math across the
+                catalog. Share it with a link that carries framework IDs only — never your
+                data.
+              </p>
+            </div>
+            <div class="frame" aria-hidden="true">
+              <div class="frame-bar"><i></i><i></i><i></i></div>
+              <div class="frame-body">
+                <div class="frame-name pad-b">Scope: “FY26 Baseline”</div>
+                <div class="mockrow">
+                  <span class="t">In scope</span>
+                  <span class="chip">3 frameworks</span>
+                  <span class="chip">412 controls</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t">Coverage</span>
+                  <div class="bar"><i style="width: 78%"></i></div>
+                  <span class="chip">78%</span>
+                </div>
+                <div class="mockrow">
+                  <span class="t">Share</span>
+                  <span class="mono-dim">…/#/program?s=nist,iso,soc2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="privacy">
+        <div class="section-inner">
+          <p class="eyebrow">Private by architecture</p>
+          <h2>Your workbook never leaves your browser.</h2>
+          <div class="pgrid">
+            <div class="pcard reveal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 10.5 12 4l9 6.5" /><path d="M5.5 9.5V20h13V9.5" /></svg>
+              <h3>No backend</h3>
+              <p>Static files on GitHub Pages. There is no server to send your data to.</p>
+            </div>
+            <div class="pcard reveal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="9" r="3.5" /><path d="M5 19.5c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5" /></svg>
+              <h3>No accounts</h3>
+              <p>No sign-up, no login, no tracking pixels, no telemetry of any kind.</p>
+            </div>
+            <div class="pcard reveal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="2.6" /><path d="M5 6v12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6V6" /><path d="M5 12c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6" /></svg>
+              <h3>Local cache</h3>
+              <p>Parsed once into IndexedDB — instant reloads, workbook stays on disk.</p>
+            </div>
+            <div class="pcard reveal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M13 3 5 13.5h5L11 21l8-10.5h-5z" /></svg>
+              <h3>Works offline</h3>
+              <p>Installable PWA. After first load, the whole app runs without a network.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="oss">
+        <div class="section-inner oss-grid">
+          <div>
+            <p class="eyebrow">Open source</p>
+            <h2>MIT-licensed, built in the open.</h2>
+            <p class="oss-copy">
+              The entire viewer — parser, indexes, UI — is free software. Read the code,
+              file issues, send PRs. If it helps your compliance program, star it and tell
+              a colleague.
+            </p>
+            <p class="attr">
+              SCF content belongs to the
+              <a href="https://securecontrolsframework.com">Secure Controls Framework Council</a>
+              (CC BY-ND 4.0). This app ships no SCF data — you bring the official
+              workbook, and it's rendered verbatim.
+            </p>
+          </div>
+          <a class="gh-card reveal" href="https://github.com/MarkAC007/scf-explorer">
+            <span class="repo">MarkAC007 / scf-explorer</span>
+            <span class="gh-desc">Read-only, client-side viewer for the Secure Controls Framework.</span>
+            <span class="gh-meta"><span>◉ TypeScript</span><span>⚖ MIT</span><span>★ Star it</span></span>
+          </a>
+        </div>
+      </section>
+
+      <section class="cta-band">
+        <h2>Stop scrolling a 30-tab spreadsheet.</h2>
+        <a class="btn-primary inverse" href="app/">Open SCF Explorer <span aria-hidden="true">→</span></a>
+      </section>
+    </main>
+
+    <footer>
+      <span>MIT © Mark Almeida-Cardy</span>
+      <span class="foot-links">
+        <a href="https://github.com/MarkAC007/scf-explorer">GitHub</a>
+        <a href="https://securecontrolsframework.com">SCF Council</a>
+        <span>Not affiliated with the SCF Council</span>
+      </span>
+    </footer>
+
+    <script>
+      // Scroll reveals — skipped entirely for reduced-motion users.
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('motion-ok')
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('in')
+                io.unobserve(e.target)
+              }
+            }
+          },
+          { threshold: 0.15 },
+        )
+        document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+      }
+    </script>
   </body>
 </html>

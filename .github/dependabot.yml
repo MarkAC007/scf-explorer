@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # 14-day cooldown matches the repo's supply-chain policy (see .npmrc / SECURITY.md)
+    cooldown:
+      default-days: 14
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 14

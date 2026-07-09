@@ -62,6 +62,12 @@ node scripts/make-fixture.mjs                    # regenerate the test fixture (
 
 Stack: React + TypeScript + Vite, Tailwind CSS, SheetJS (in a Web Worker), Dexie (IndexedDB), MiniSearch, TanStack Virtual. Tests: Vitest + Playwright. See `docs/superpowers/specs/` for the design document.
 
+## Contributing & security
+
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) (short version: keep it
+read-only and client-side, and never add SCF content to the repo). Vulnerabilities: please
+report privately via [SECURITY.md](SECURITY.md).
+
 ## Licence & attribution
 
 - Code: [MIT](LICENSE).

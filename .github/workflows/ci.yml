@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Manual trigger for redeploys. Note: deploy-pages@v5 cannot recover via
+  # "re-run failed jobs" (duplicate github-pages artifacts) — dispatch a fresh run instead.
+  workflow_dispatch:
 
 permissions:
   contents: read

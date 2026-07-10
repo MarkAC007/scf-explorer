@@ -21,7 +21,7 @@ const html = `<!doctype html><html><body style="margin:0">
       risks and threats — 100% in your browser.
     </div>
     <div style="font-family:'DejaVu Sans Mono',monospace;font-size:24px;margin-top:44px;color:#8fb8b2">
-      markac007.github.io/scf-explorer · open source · no uploads
+      scfcontrolsexplorer.app · open source · no uploads
     </div>
   </div>
 </div></body></html>`

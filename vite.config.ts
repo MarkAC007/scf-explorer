@@ -1,11 +1,23 @@
 /// <reference types="vitest/config" />
+import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Served at the domain root (scfcontrolsexplorer.app) — no repo-path prefix.
+const base = '/'
+
 export default defineConfig({
-  base: process.env.GITHUB_PAGES ? '/scf-explorer/' : '/',
+  base,
+  build: {
+    rollupOptions: {
+      input: {
+        landing: resolve(__dirname, 'index.html'),
+        app: resolve(__dirname, 'app/index.html'),
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -17,6 +29,10 @@ export default defineConfig({
         short_name: 'SCF Explorer',
         description:
           'Read-only viewer for the Secure Controls Framework — controls, ~250 framework mappings, maturity, risks and threats. 100% client-side.',
+        // The installable app must open the app itself, never the marketing page.
+        id: 'app/',
+        start_url: 'app/',
+        scope: 'app/',
         theme_color: '#1a2332',
         background_color: '#f7f8f6',
         display: 'standalone',
@@ -33,6 +49,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        // MPA: the SPA-style fallback must resolve to the app entry, not the
+        // marketing page, or offline hash-navigation would land on marketing.
+        navigateFallback: base + 'app/index.html',
       },
     }),
   ],

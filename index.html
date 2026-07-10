@@ -6,9 +6,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1a2332" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <title>SCF Explorer</title>
+    <title>SCF Explorer — Secure Controls Framework Viewer & Crosswalk</title>
+    <meta
+      name="description"
+      content="Free, open-source viewer for the Secure Controls Framework (SCF). Browse 1,400+ controls, crosswalk ~250 framework mappings (NIST 800-53, ISO 27001, SOC 2, PCI DSS), maturity criteria, risks and threats — 100% in your browser."
+    />
+    <link rel="canonical" href="https://markac007.github.io/scf-explorer/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SCF Explorer" />
+    <meta property="og:title" content="SCF Explorer — Secure Controls Framework Viewer & Crosswalk" />
+    <meta
+      property="og:description"
+      content="Free, open-source viewer for the Secure Controls Framework (SCF). Browse 1,400+ controls, crosswalk ~250 framework mappings, maturity criteria, risks and threats — 100% in your browser."
+    />
+    <meta property="og:url" content="https://markac007.github.io/scf-explorer/" />
+    <meta property="og:image" content="https://markac007.github.io/scf-explorer/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SCF Explorer — Secure Controls Framework Viewer & Crosswalk" />
+    <meta
+      name="twitter:description"
+      content="Free, open-source viewer for the Secure Controls Framework (SCF). Browse controls, framework crosswalks, maturity criteria, risks and threats — 100% in your browser."
+    />
+    <meta name="twitter:image" content="https://markac007.github.io/scf-explorer/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SCF Explorer",
+        "url": "https://markac007.github.io/scf-explorer/",
+        "description": "Free, open-source, read-only viewer for the Secure Controls Framework (SCF). Browse 1,400+ controls, crosswalk ~250 framework mappings, maturity criteria, risks and threats. Runs entirely in the browser — no accounts, no uploads, no tracking.",
+        "applicationCategory": "SecurityApplication",
+        "operatingSystem": "Any (runs in a web browser)",
+        "browserRequirements": "Requires JavaScript",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "license": "https://github.com/MarkAC007/scf-explorer/blob/main/LICENSE",
+        "sameAs": ["https://github.com/MarkAC007/scf-explorer"],
+        "author": {
+          "@type": "Person",
+          "name": "Mark Almeida-Cardy",
+          "url": "https://github.com/MarkAC007"
+        }
+      }
+    </script>
   </head>
   <body>
+    <noscript>
+      <h1>SCF Explorer — Secure Controls Framework Viewer &amp; Crosswalk</h1>
+      <p>
+        SCF Explorer is a free, open-source, read-only viewer for the
+        <a href="https://securecontrolsframework.com">Secure Controls Framework (SCF)</a>.
+        Upload the official SCF Excel workbook and browse 1,400+ controls, crosswalk ~250
+        framework mappings (NIST 800-53, ISO 27001, SOC 2, PCI DSS and more), maturity
+        criteria, risks, threats, assessment objectives and evidence references. Everything
+        runs in your browser — nothing is uploaded anywhere. JavaScript is required to use
+        the app. Source code on
+        <a href="https://github.com/MarkAC007/scf-explorer">GitHub</a>.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

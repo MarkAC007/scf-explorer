@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { useModel } from '../store/modelStore'
 import { useScope } from '../scope/scopeStore'
 import { groupMappings } from './controlDetail.helpers'
 import Badge from '../components/Badge'
 import WeightBar from '../components/WeightBar'
 import Tabs from '../components/Tabs'
+import LikelihoodBadge from '../components/LikelihoodBadge'
 
 const LEVEL_TONES = [
   'bg-gray-300',
@@ -18,12 +19,17 @@ const LEVEL_TONES = [
 
 export default function ControlDetailView() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const model = useModel((s) => s.model)
   const indexes = useModel((s) => s.indexes)
   const activeScope = useScope((s) => s.activeScope)
   const [mappingFilter, setMappingFilter] = useState('')
 
   const control = id ? indexes?.controlById.get(id) : undefined
+  // SCF 2026.3 renumbered most controls. An id that is no longer current may be the old
+  // number of exactly one control (redirect), of several (offer them), or of none.
+  const legacyMatches = id && indexes ? (indexes.controlsByLegacyId.get(id) ?? []) : []
+  const arrivedFrom = searchParams.get('from')
 
   const groups = useMemo(
     () => (control && indexes ? groupMappings(control, indexes.frameworkById) : []),
@@ -31,16 +37,41 @@ export default function ControlDetailView() {
   )
 
   if (!model || !indexes) return null
+  if (!control && legacyMatches.length === 1)
+    return <Navigate to={`/controls/${legacyMatches[0].id}?from=${encodeURIComponent(id!)}`} replace />
   if (!control) {
     return (
       <div className="p-12 text-center text-gray-500">
         Control “{id}” not found in this workbook.{' '}
-        <Link to="/controls" className="text-pine-600 hover:underline">
-          Browse controls
-        </Link>
+        {legacyMatches.length > 1 ? (
+          <span>
+            In SCF {model.version} it was renumbered to{' '}
+            {legacyMatches.map((c, i) => (
+              <span key={c.id}>
+                {i > 0 && ', '}
+                <Link to={`/controls/${c.id}`} className="font-mono text-pine-600 hover:underline">
+                  {c.id}
+                </Link>
+              </span>
+            ))}
+            .
+          </span>
+        ) : (
+          <Link to="/controls" className="text-pine-600 hover:underline">
+            Browse controls
+          </Link>
+        )}
       </div>
     )
   }
+
+  const legacyIds = control.legacyIds ?? []
+  const redirectedHere = arrivedFrom && legacyIds.includes(arrivedFrom) ? arrivedFrom : null
+  // This id exists, but it was also another control's number in an earlier release.
+  const alsoFormerly = legacyMatches.filter((c) => c.id !== control.id)
+  // Errata cells in 2026.3 are change tags ("- renumbered\n- wordsmithed"); older releases hold prose.
+  const errataLines = control.errata ? control.errata.split('\n').map((l) => l.trim()).filter(Boolean) : []
+  const changeTags = errataLines.length && errataLines.every((l) => /^-\s*\S/.test(l)) ? errataLines.map((l) => l.replace(/^-\s*/, '')) : null
 
   const domain = indexes.domainById.get(control.domainId)
   const ordered = model.controls
@@ -106,10 +137,44 @@ export default function ControlDetailView() {
         </div>
       )}
 
+      {(redirectedHere || alsoFormerly.length > 0) && (
+        <p
+          role="status"
+          className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900"
+        >
+          {redirectedHere && (
+            <>
+              <code className="font-mono">{redirectedHere}</code> was renumbered to{' '}
+              <code className="font-mono">{control.id}</code> in SCF {model.version}.{' '}
+            </>
+          )}
+          {alsoFormerly.length > 0 && (
+            <>
+              Looking for the control that used to be <code className="font-mono">{control.id}</code>? In SCF{' '}
+              {model.version} it is{' '}
+              {alsoFormerly.map((c, i) => (
+                <span key={c.id}>
+                  {i > 0 && ', '}
+                  <Link to={`/controls/${c.id}`} className="font-mono underline">
+                    {c.id}
+                  </Link>
+                </span>
+              ))}
+              .
+            </>
+          )}
+        </p>
+      )}
+
       <header className="mt-4 rounded-lg border border-line bg-white p-6">
         <div className="flex flex-wrap items-center gap-3">
           <span className="id-plate text-xl">{control.id}</span>
           <h1 className="text-xl font-semibold text-gray-900">{control.name}</h1>
+          {legacyIds.length > 0 && (
+            <span className="text-sm text-gray-500">
+              formerly <span className="font-mono">{legacyIds.join(', ')}</span>
+            </span>
+          )}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           {domain && (
@@ -147,7 +212,15 @@ export default function ControlDetailView() {
             })}
           </div>
         )}
-        {control.errata && (
+        {changeTags && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+            <span>Changed in {model.version}:</span>
+            {changeTags.map((t) => (
+              <Badge key={t}>{t}</Badge>
+            ))}
+          </div>
+        )}
+        {control.errata && !changeTags && (
           <p className="mt-3 text-xs text-gray-400">Errata {model.version}: {control.errata}</p>
         )}
       </header>
@@ -250,6 +323,7 @@ export default function ControlDetailView() {
                           <div className="flex items-center gap-2">
                             <Badge tone="red">{r!.id}</Badge>
                             <span className="text-sm font-medium text-gray-900">{r!.name}</span>
+                            <LikelihoodBadge rating={control.riskLikelihood?.[r!.id]} />
                           </div>
                           <p className="mt-1 text-sm text-gray-600">{r!.description}</p>
                         </div>
@@ -267,6 +341,7 @@ export default function ControlDetailView() {
                           <div className="flex items-center gap-2">
                             <Badge tone="amber">{t!.id}</Badge>
                             <span className="text-sm font-medium text-gray-900">{t!.name}</span>
+                            <LikelihoodBadge rating={control.threatLikelihood?.[t!.id]} />
                           </div>
                           <p className="mt-1 text-sm text-gray-600">{t!.description}</p>
                         </div>

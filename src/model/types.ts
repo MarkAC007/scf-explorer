@@ -28,6 +28,9 @@ export interface Solution {
   text: string
 }
 
+/** Risk/threat likelihood rating carried in SCF 2026.3+ matrix cells. */
+export type Likelihood = 'unlikely' | 'possible' | 'likely'
+
 export interface Control {
   id: string
   domainId: string
@@ -46,8 +49,12 @@ export interface Control {
   solutions: Solution[]
   erlIds: string[]
   mappings: Record<string, string[]>
+  /** Linked risks: rated possible/likely (2026.3+) or any marker (earlier releases). */
   riskIds: string[]
   threatIds: string[]
+  /** Every rating per risk/threat id, including 'unlikely'; empty for releases without ratings. */
+  riskLikelihood: Record<string, Likelihood>
+  threatLikelihood: Record<string, Likelihood>
   errata: string
   row: number
 }

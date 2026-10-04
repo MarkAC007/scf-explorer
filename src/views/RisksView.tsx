@@ -11,7 +11,8 @@ export default function RisksView() {
       <h1 className="text-2xl font-bold tracking-tight text-gray-900">Risk catalog</h1>
       <p className="mt-2 max-w-3xl text-gray-600">
         The {model.risks.length} risks the SCF associates with control deficiencies. Each
-        risk lists the controls whose absence exposes it.
+        risk lists the controls whose absence exposes it
+        {indexes.stats.hasLikelihood ? ' (rated Possible or Likely by the SCF)' : ''}.
       </p>
       <div className="mt-6">
         <CatalogList
@@ -24,6 +25,7 @@ export default function RisksView() {
             materiality: r.materiality,
             extra: r.csfFunction || undefined,
             linked: indexes.controlsByRisk.get(r.id) ?? [],
+            linkedUnlikely: indexes.unlikelyControlsByRisk.get(r.id),
           }))}
         />
       </div>

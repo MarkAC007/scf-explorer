@@ -11,7 +11,7 @@ export default function ThreatsView() {
       <h1 className="text-2xl font-bold tracking-tight text-gray-900">Threat catalog</h1>
       <p className="mt-2 max-w-3xl text-gray-600">
         {model.threats.length} natural and man-made threats, with the SCF controls that
-        defend against each.
+        defend against each{indexes.stats.hasLikelihood ? ' (rated Possible or Likely by the SCF)' : ''}.
       </p>
       <div className="mt-6">
         <CatalogList
@@ -23,6 +23,7 @@ export default function ThreatsView() {
             description: t.description,
             materiality: t.materiality,
             linked: indexes.controlsByThreat.get(t.id) ?? [],
+            linkedUnlikely: indexes.unlikelyControlsByThreat.get(t.id),
           }))}
         />
       </div>

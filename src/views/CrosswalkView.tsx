@@ -92,8 +92,14 @@ export default function CrosswalkView() {
       </Link>
     )
 
-  const fwA = params.get('fw') ?? ''
-  const fwB = params.get('fwB') ?? ''
+  // Share links and bookmarks can name framework slugs that this workbook does not have
+  // (SCF releases rename frameworks). Resolve defensively: unknown ids become a notice.
+  const rawA = params.get('fw') ?? ''
+  const rawB = params.get('fwB') ?? ''
+  const known = (id: string): boolean => !!indexes && indexes.frameworkById.has(id)
+  const fwA = known(rawA) ? rawA : ''
+  const fwB = known(rawB) ? rawB : ''
+  const unknownIds = [rawA, rawB].filter((id) => id && !known(id))
 
   const mappedFrameworks = useMemo(
     () =>
@@ -176,6 +182,23 @@ export default function CrosswalkView() {
         references into the frameworks it satisfies. Pick one framework to see its SCF
         coverage — pick two to see what they share and where they differ.
       </p>
+
+      {unknownIds.length > 0 && (
+        <p
+          role="status"
+          className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+        >
+          {unknownIds.length === 1 ? 'Framework ' : 'Frameworks '}
+          {unknownIds.map((id, i) => (
+            <span key={id}>
+              {i > 0 && ', '}
+              <code className="font-mono">{id}</code>
+            </span>
+          ))}{' '}
+          {unknownIds.length === 1 ? 'is' : 'are'} not in this workbook — the SCF may have renamed
+          it in a newer release. Pick a framework below.
+        </p>
+      )}
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row">
         <FrameworkSelect

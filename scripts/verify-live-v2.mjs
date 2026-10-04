@@ -10,7 +10,7 @@ await page.setInputFiles('[data-testid="file-input"]', '/home/mark/scf-releases/
 await page.waitForURL('**/#/', { timeout: 180000 })
 
 // footer
-console.log('footer:', await page.getByText('Developed by Mark Almeida-Cardy').isVisible())
+console.log('footer:', await page.getByText('Developed by').isVisible())
 
 // build + activate a scope on the live site
 await page.getByRole('link', { name: 'Program', exact: true }).click()

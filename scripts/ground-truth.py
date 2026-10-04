@@ -220,10 +220,11 @@ for row in rows:
                 mapping_cells += 1
                 mapping_refs += len(refs)
                 row_fw[key] = refs
-        elif kind == "risk" and filled:
+        elif kind == "risk" and filled and str(v).strip().lower() != "unlikely":
+            # 2026.3+: cells hold Unlikely/Possible/Likely; only the latter two link
             risk_links += 1
             risk_ids.append(key)
-        elif kind == "threat" and filled:
+        elif kind == "threat" and filled and str(v).strip().lower() != "unlikely":
             threat_links += 1
             threat_ids.append(key)
         elif kind == "maturity":

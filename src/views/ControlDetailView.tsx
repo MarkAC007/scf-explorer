@@ -6,6 +6,7 @@ import { groupMappings } from './controlDetail.helpers'
 import Badge from '../components/Badge'
 import WeightBar from '../components/WeightBar'
 import Tabs from '../components/Tabs'
+import LikelihoodBadge from '../components/LikelihoodBadge'
 
 const LEVEL_TONES = [
   'bg-gray-300',
@@ -250,6 +251,7 @@ export default function ControlDetailView() {
                           <div className="flex items-center gap-2">
                             <Badge tone="red">{r!.id}</Badge>
                             <span className="text-sm font-medium text-gray-900">{r!.name}</span>
+                            <LikelihoodBadge rating={control.riskLikelihood?.[r!.id]} />
                           </div>
                           <p className="mt-1 text-sm text-gray-600">{r!.description}</p>
                         </div>
@@ -267,6 +269,7 @@ export default function ControlDetailView() {
                           <div className="flex items-center gap-2">
                             <Badge tone="amber">{t!.id}</Badge>
                             <span className="text-sm font-medium text-gray-900">{t!.name}</span>
+                            <LikelihoodBadge rating={control.threatLikelihood?.[t!.id]} />
                           </div>
                           <p className="mt-1 text-sm text-gray-600">{t!.description}</p>
                         </div>

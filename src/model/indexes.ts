@@ -20,6 +20,9 @@ export interface ModelIndexes {
   controlsByFramework: Map<string, Control[]>
   controlsByRisk: Map<string, Control[]>
   controlsByThreat: Map<string, Control[]>
+  /** Controls the SCF rates "Unlikely" for a risk/threat (2026.3+); disjoint from controlsByRisk/Threat. */
+  unlikelyControlsByRisk: Map<string, Control[]>
+  unlikelyControlsByThreat: Map<string, Control[]>
   controlsByBaseline: Map<string, Control[]>
   aosByControl: Map<string, AssessmentObjective[]>
   erlById: Map<string, ErlItem>
@@ -34,6 +37,8 @@ export interface ModelIndexes {
     threats: number
     aos: number
     erlItems: number
+    /** True when any control carries a likelihood rating (SCF 2026.3+). */
+    hasLikelihood: boolean
   }
 }
 
@@ -48,13 +53,25 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
   const controlsByFramework = new Map<string, Control[]>()
   const controlsByRisk = new Map<string, Control[]>()
   const controlsByThreat = new Map<string, Control[]>()
+  const unlikelyControlsByRisk = new Map<string, Control[]>()
+  const unlikelyControlsByThreat = new Map<string, Control[]>()
   const controlsByBaseline = new Map<string, Control[]>()
+  let hasLikelihood = false
 
   for (const c of m.controls) {
     push(controlsByDomain, c.domainId, c)
     for (const fw of Object.keys(c.mappings)) push(controlsByFramework, fw, c)
     for (const r of c.riskIds) push(controlsByRisk, r, c)
     for (const t of c.threatIds) push(controlsByThreat, t, c)
+    // Models cached before 2026.3 support have no likelihood maps.
+    for (const [r, rating] of Object.entries(c.riskLikelihood ?? {})) {
+      hasLikelihood = true
+      if (rating === 'unlikely') push(unlikelyControlsByRisk, r, c)
+    }
+    for (const [t, rating] of Object.entries(c.threatLikelihood ?? {})) {
+      hasLikelihood = true
+      if (rating === 'unlikely') push(unlikelyControlsByThreat, t, c)
+    }
     for (const b of c.baselines) push(controlsByBaseline, b, c)
   }
 
@@ -84,6 +101,8 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
     controlsByFramework,
     controlsByRisk,
     controlsByThreat,
+    unlikelyControlsByRisk,
+    unlikelyControlsByThreat,
     controlsByBaseline,
     aosByControl,
     erlById,
@@ -98,6 +117,7 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
       threats: m.threats.length,
       aos: m.assessmentObjectives.length,
       erlItems: m.erlItems.length,
+      hasLikelihood,
     },
   }
 }

@@ -12,6 +12,8 @@ export interface CatalogEntry {
   materiality: string
   extra?: string
   linked: Control[]
+  /** Controls rated "Unlikely" for this entry (SCF 2026.3+); shown only when the viewer opts in. */
+  linkedUnlikely?: Control[]
 }
 
 /** Grouped, expandable catalog list shared by the Risks and Threats views. */
@@ -23,7 +25,11 @@ export default function CatalogList({
   tone: 'red' | 'amber'
 }) {
   const [open, setOpen] = useState<string | null>(null)
+  const [showUnlikely, setShowUnlikely] = useState(false)
   const scopeSet = useScope((s) => s.activeControlIds)
+  const hasUnlikely = entries.some((e) => (e.linkedUnlikely?.length ?? 0) > 0)
+  const linkedFor = (e: CatalogEntry): Control[] =>
+    showUnlikely && e.linkedUnlikely ? [...e.linked, ...e.linkedUnlikely] : e.linked
 
   const groups = new Map<string, CatalogEntry[]>()
   for (const e of entries) {
@@ -34,6 +40,17 @@ export default function CatalogList({
 
   return (
     <div className="space-y-8">
+      {hasUnlikely && (
+        <label className="flex items-center gap-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={showUnlikely}
+            onChange={(e) => setShowUnlikely(e.target.checked)}
+            data-testid="show-unlikely"
+          />
+          Include controls the SCF rates &ldquo;Unlikely&rdquo; to affect each entry
+        </label>
+      )}
       {[...groups.entries()].map(([grouping, items]) => (
         <section key={grouping}>
           <h2 className="mb-2 eyebrow">
@@ -52,9 +69,12 @@ export default function CatalogList({
                     className="ml-auto text-sm text-pine-600 hover:underline"
                     aria-expanded={open === e.id}
                   >
-                    {scopeSet
-                      ? `${e.linked.filter((c) => scopeSet.has(c.id)).length} of ${e.linked.length} in scope`
-                      : `${e.linked.length} control${e.linked.length === 1 ? '' : 's'}`}
+                    {(() => {
+                      const linked = linkedFor(e)
+                      return scopeSet
+                        ? `${linked.filter((c) => scopeSet.has(c.id)).length} of ${linked.length} in scope`
+                        : `${linked.length} control${linked.length === 1 ? '' : 's'}`
+                    })()}
                   </button>
                 </div>
                 <p className="mt-2 text-sm text-gray-600">{e.description}</p>
@@ -65,7 +85,7 @@ export default function CatalogList({
                 )}
                 {open === e.id && (
                   <div className="mt-3 flex flex-wrap gap-1.5 border-t border-line/60 pt-3">
-                    {e.linked.map((c) => (
+                    {linkedFor(e).map((c) => (
                       <Link
                         key={c.id}
                         to={`/controls/${c.id}`}
@@ -75,7 +95,7 @@ export default function CatalogList({
                         {c.id}
                       </Link>
                     ))}
-                    {e.linked.length === 0 && (
+                    {linkedFor(e).length === 0 && (
                       <span className="text-xs text-gray-400">
                         No controls in this workbook link here.
                       </span>

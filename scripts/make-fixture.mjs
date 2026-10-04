@@ -46,7 +46,7 @@ for (const name of wb.SheetNames) {
   else if (/^assessment objectives/i.test(name)) rows = filterSheet(ws, /^scf #$/i)
   else if (/^evidence request list/i.test(name))
     rows = filterSheet(ws, /^scf control mappings$/i, { multiValue: true })
-  else if (/data privacy mgmt principles/i.test(name)) rows = filterSheet(ws, /^scf #$/i)
+  else if (/data privacy mgmt principles/i.test(name)) rows = filterSheet(ws, /^(\d{4}\.\d+ )?scf #$/i)
   else rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null })
   XLSX.utils.book_append_sheet(out, XLSX.utils.aoa_to_sheet(rows), name)
 }

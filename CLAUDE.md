@@ -105,11 +105,11 @@ semantics. IBM Plex Sans/Mono + Space Grotesk (display). Custom utilities in
 
 ## Known open items
 
-- **2026.2 compat:** SCF renamed the sources sheet "Authoritative Sources" → "Focal
-  Documents"; `parseWorkbook.ts` pattern `/authoritative sources/i` won't match it, so that
-  sheet degrades to a parse-report warning (frameworks fall back to unmapped-column
-  metadata). Fix the pattern + re-run the dual-parser verification against
-  `~/scf-releases/2026.2/secure-controls-framework-scf-2026-2.xlsx` before claiming support.
+- **2026.3 compat (tracked in issues #35–#42):** the sources sheet is now matched as
+  "Focal Documents (FD)" and the renamed ERL / AO-rigor / privacy "2026.3 SCF #" headers are
+  recognised (#35). Still open: folded compensating-control columns and `Legacy SCF #` (#36),
+  dense risk/threat likelihood cells (#37), legacy-ID aliasing (#38), scope migration (#39),
+  crosswalk unknown-id crash (#40), fixture-derived test data (#41), CI on 2026.3 (#42).
 - Errata note `docs/scf-errata-erl-crossrefs.md` is ready to send to SCF support (Mark's call).
 - SourcesView render test has a 15s timeout (250 rows under parallel vitest load) — timing,
   not data; don't "fix" by weakening assertions.

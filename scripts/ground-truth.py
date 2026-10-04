@@ -255,7 +255,7 @@ dom_ids = [norm(r[cid]) for r in rows[1:] if norm(r[cid])]
 out["domains"] = {"count": len(dom_ids), "ids": sorted(dom_ids)}
 
 # ---- Sources ----------------------------------------------------------------
-ws = sheet_by(r"authoritative sources")
+ws = sheet_by(r"authoritative sources|focal documents")  # renamed in SCF 2026.2
 rows = list(ws.iter_rows(values_only=True))
 hdr = [norm(h) for h in rows[0]]
 ch = hdr.index("SCF Column Header")
@@ -267,7 +267,7 @@ ws = sheet_by(r"^assessment objectives")
 rows = ws.iter_rows(values_only=True)
 hdr = [norm(h) for h in next(rows)]
 cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
-crig = next(i for i, h in enumerate(hdr) if re.match(r"^assessment rigor", h, re.I))
+crig = next(i for i, h in enumerate(hdr) if re.search(r"assessment rigor", h, re.I))  # 2026.3: "SCR CAP Assessment Rigor (AR)"
 aos, rigor_nonnull = 0, 0
 for r in rows:
     if norm(r[cao]):
@@ -339,7 +339,7 @@ ws = sheet_by(r"data privacy mgmt principles")
 rows = ws.iter_rows(values_only=True)
 hdr = [norm(h) for h in next(rows)]
 cnum = hdr.index("#")
-cctl = next(i for i, h in enumerate(hdr) if re.match(r"^scf #$", h, re.I))
+cctl = next(i for i, h in enumerate(hdr) if re.match(r"^(\d{4}\.\d+ )?scf #$", h, re.I))  # 2026.3: "2026.3 SCF #"
 principles = {}
 last = ""
 for r in rows:
@@ -368,7 +368,7 @@ hdr = [norm(h) for h in next(rows)]
 cctl = next(i for i, h in enumerate(hdr) if re.match(r"^scf #$", h, re.I))
 cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
 ctext = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\)", h, re.I))
-crig = next(i for i, h in enumerate(hdr) if re.match(r"^assessment rigor", h, re.I))
+crig = next(i for i, h in enumerate(hdr) if re.search(r"assessment rigor", h, re.I))  # 2026.3: "SCR CAP Assessment Rigor (AR)"
 corig = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\) origin", h, re.I))
 ao_rows = []
 for r in rows:
@@ -389,8 +389,8 @@ rows = ws.iter_rows(values_only=True)
 hdr = [norm(h) for h in next(rows)]
 ci_ = hdr.index("ERL #")
 ca_ = hdr.index("Area of Focus")
-cart = hdr.index("Documentation Artifact")
-cd_ = hdr.index("Artifact Description")
+cart = next(i for i, h in enumerate(hdr) if re.match(r"^(documentation|erl) artifact$", h, re.I))  # 2026.3: "ERL Artifact"
+cd_ = next(i for i, h in enumerate(hdr) if re.search(r"artifact description$", h, re.I))  # 2026.3: "Evidence Request List (ERL) Artifact Description"
 cm_ = hdr.index("SCF Control Mappings")
 erl_rows = []
 for r in rows:

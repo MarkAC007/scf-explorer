@@ -12,7 +12,7 @@ import { parsePrivacyPrinciples } from './sheets/privacy'
 const SHEET_PATTERNS: { key: string; pattern: RegExp }[] = [
   { key: 'main', pattern: /^scf 20/i },
   { key: 'domains', pattern: /domains & principles/i },
-  { key: 'sources', pattern: /authoritative sources/i },
+  { key: 'sources', pattern: /authoritative sources|focal documents/i }, // renamed in SCF 2026.2
   { key: 'compensating', pattern: /^compensating controls/i },
   { key: 'erl', pattern: /^evidence request list/i },
   { key: 'aos', pattern: /^assessment objectives/i },
@@ -84,11 +84,20 @@ export const parseWorkbook = (data: ArrayBuffer, fileName: string): ScfModel => 
     ...sources.filter((s) => !columnIds.has(s.id)),
   ]
 
+  // 2026.3 dropped the "Control Count" column from the domains sheet; derive it from the
+  // main sheet whenever the sheet gives us nothing.
+  const domains = safe('domains', parseDomains, [])
+  if (domains.length && domains.every((d) => d.controlCount === 0)) {
+    const perDomain = new Map<string, number>()
+    for (const c of main.controls) perDomain.set(c.domainId, (perDomain.get(c.domainId) ?? 0) + 1)
+    for (const d of domains) d.controlCount = perDomain.get(d.id) ?? 0
+  }
+
   return {
     version: report.version,
     sourceFileName: fileName,
     parsedAt: new Date().toISOString(),
-    domains: safe('domains', parseDomains, []),
+    domains,
     controls: main.controls,
     frameworks,
     risks: safe('risks', parseRiskCatalog, []),

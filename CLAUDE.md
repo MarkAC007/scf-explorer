@@ -65,8 +65,8 @@ npm run build && node scripts/verify-ui-data.mjs   # UI layer vs ground truth (h
 ```
 
 Other scripts: `shots.mjs` / `shots-program.mjs` (screenshots vs local build),
-`verify-live-v2.mjs` (drives the live Pages site with the real workbook), `make-icons.mjs`
-(PWA icon set).
+`verify-live-v2.mjs` (drives the live Pages site with the real workbook).
+Brand icons (favicon, PWA set) are the ComplianceGenie assets copied into `public/`, not generated.
 
 ## Architecture map
 

@@ -133,10 +133,18 @@ function Layout() {
         </main>
       </div>
       <footer className="flex h-7 shrink-0 items-center justify-center gap-1.5 border-t border-line bg-paper text-xs text-gray-500">
-        Developed by Mark Almeida-Cardy
+        Developed by
+        <a
+          href="https://compliancegenie.io"
+          target="_blank"
+          rel="noreferrer"
+          className="text-pine-600 hover:underline"
+        >
+          ComplianceGenie.io
+        </a>
         <span aria-hidden="true">·</span>
         <a
-          href="https://github.com/MarkAC007"
+          href="https://github.com/MarkAC007/scf-explorer"
           target="_blank"
           rel="noreferrer"
           className="text-pine-600 hover:underline"

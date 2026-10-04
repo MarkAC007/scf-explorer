@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { sheet } from '../helpers/fixture'
+import { sheet, fixtureExpectations } from '../helpers/fixture'
 import { parseDomains } from '../../src/parser/sheets/domains'
 import { parseSources } from '../../src/parser/sheets/sources'
 import { parseRiskCatalog, parseThreatCatalog } from '../../src/parser/sheets/catalogs'
 
 describe('parseDomains', () => {
   const domains = parseDomains(sheet(/domains & principles/i))
-  it('parses all 33 domains', () => {
-    expect(domains).toHaveLength(33)
+  it('parses every domain row', () => {
+    expect(domains).toHaveLength(fixtureExpectations().domainCount)
+    expect(domains.map((d) => d.id).sort()).toEqual([...fixtureExpectations().domainNames.keys()].sort())
   })
   it('parses GOV with principle, intent and count', () => {
     const gov = domains.find((d) => d.id === 'GOV')
@@ -15,7 +16,9 @@ describe('parseDomains', () => {
     expect(gov!.name).toMatch(/governance/i)
     expect(gov!.principle.length).toBeGreaterThan(20)
     expect(gov!.intent.length).toBeGreaterThan(20)
-    expect(gov!.controlCount).toBeGreaterThan(0)
+    // 2026.3 dropped the Control Count column; parseWorkbook derives it from the main sheet instead
+    if (fixtureExpectations().hasDomainControlCount) expect(gov!.controlCount).toBeGreaterThan(0)
+    else expect(gov!.controlCount).toBe(0)
   })
 })
 
@@ -25,11 +28,11 @@ describe('parseSources', () => {
     expect(sources.length).toBeGreaterThanOrEqual(200)
   })
   it('contains NIST 800-53 R5 with links and geography', () => {
-    const f = sources.find((s) => s.id === 'nist-800-53-r5')
+    const f = sources.find((s) => s.id === fixtureExpectations().nist)
     expect(f).toBeDefined()
     expect(f!.fromSources).toBe(true)
     expect(f!.geography.length).toBeGreaterThan(0)
-    expect(f!.name).toMatch(/800-53/)
+    expect(f!.name).toMatch(/800\s*-\s*53/)
   })
 })
 

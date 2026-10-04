@@ -5,6 +5,7 @@ import { parseWorkbook } from '../../src/parser/parseWorkbook'
 import { buildSearch } from '../../src/search/searchIndex'
 import { applyFilters } from '../../src/views/controlsFilter'
 import { toCsv } from '../../src/lib/csv'
+import { fixtureExpectations } from '../helpers/fixture'
 
 const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
 const model = parseWorkbook(
@@ -12,10 +13,11 @@ const model = parseWorkbook(
   'f.xlsx',
 )
 const search = buildSearch(model.controls)
+const exp = fixtureExpectations()
 
 describe('applyFilters', () => {
   it('no filters returns all controls', () => {
-    expect(applyFilters(model.controls, {}, search)).toHaveLength(101)
+    expect(applyFilters(model.controls, {}, search)).toHaveLength(exp.controlCount)
   })
   it('filters by domain', () => {
     const out = applyFilters(model.controls, { domain: 'GOV' }, search)
@@ -28,16 +30,21 @@ describe('applyFilters', () => {
     expect(out.every((c) => c.pptdf.includes('Process') && c.csfFunction === 'Govern')).toBe(true)
   })
   it('filters by framework mapping presence', () => {
-    const out = applyFilters(model.controls, { framework: 'nist-800-53-r5' }, search)
+    const out = applyFilters(model.controls, { framework: exp.nist }, search)
     expect(out.length).toBeGreaterThan(0)
-    expect(out.every((c) => 'nist-800-53-r5' in c.mappings)).toBe(true)
+    expect(out.every((c) => exp.nist in c.mappings)).toBe(true)
   })
   it('filters by minimum weighting', () => {
     const out = applyFilters(model.controls, { weightMin: 8 }, search)
     expect(out.every((c) => (c.weighting ?? 0) >= 8)).toBe(true)
   })
   it('full-text search finds GOV-01 from description words', () => {
-    const out = applyFilters(model.controls, { query: 'security compliance resilience program' }, search)
+    const words = String(exp.rawCell('GOV-01', /control description$/i))
+      .split(/\W+/)
+      .filter((w) => w.length > 5)
+      .slice(0, 4)
+      .join(' ')
+    const out = applyFilters(model.controls, { query: words }, search)
     expect(out.some((c) => c.id === 'GOV-01')).toBe(true)
   })
   it('search by exact control id works', () => {

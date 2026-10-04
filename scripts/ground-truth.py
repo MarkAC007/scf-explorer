@@ -24,7 +24,9 @@ SAMPLE_IDS = [
     "GOV-01", "AST-01", "IAC-01", "NET-01", "CRY-01",
     "DCH-01", "HRS-01", "IRO-01", "RSK-01", "TPM-01",
 ]
-SAMPLE_FRAMEWORKS = ["nist-800-53-r5", "iso-27002-2022", "emea-eu-nis2"]
+# Resolved against the main sheet's framework columns below (slugs change between releases,
+# e.g. nist-800-53-r5 -> nist-800-53-r5-2 in 2026.3).
+SAMPLE_FRAMEWORK_PATTERNS = [r"^nist-800-53-r5(-\d+)?$", r"^iso-27002-2022$", r"^emea-eu-nis2(-\d{4})?$"]
 
 
 def norm(v):
@@ -100,18 +102,46 @@ def classify(header):
 wb = openpyxl.load_workbook(SRC, read_only=True, data_only=True)
 
 
+missing = []  # sections this release lacks or whose headers moved; emitted as out["missing"]
+
+
+class MissingSheet(KeyError):
+    pass
+
+
 def sheet_by(pattern):
     for name in wb.sheetnames:
         if re.search(pattern, name.strip(), re.I):
             return wb[name]
-    raise KeyError(pattern)
+    raise MissingSheet(f"sheet not found: /{pattern}/i (have: {', '.join(wb.sheetnames)})")
 
 
 def sheet_by_opt(pattern):
     try:
         return sheet_by(pattern)
-    except KeyError:
+    except MissingSheet:
         return None
+
+
+class section:
+    """Degrade like the TS parser: a missing sheet or header skips the section and is
+    recorded in out["missing"] instead of crashing the whole extraction."""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, et, ev, tb):
+        if et is None:
+            return False
+        if issubclass(et, (KeyError, StopIteration, ValueError, IndexError, TypeError)):
+            msg = f"{self.name}: {et.__name__}: {ev}"
+            missing.append(msg)
+            print(f"ground-truth: skipped {msg}", file=sys.stderr)
+            return True
+        return False
 
 
 def iter_compensating():
@@ -156,8 +186,12 @@ def iter_compensating():
 
 out = {}
 
-# ---- Main sheet -------------------------------------------------------------
-ws = sheet_by(r"^scf 20")
+# ---- Main sheet (required: without it this is not an SCF workbook) ----------
+try:
+    ws = sheet_by(r"^scf 20")
+except MissingSheet as e:
+    print(f"ground-truth: {e}", file=sys.stderr)
+    sys.exit(2)
 rows = ws.iter_rows(values_only=True)
 headers = next(rows)
 kinds = [classify(h) if h is not None else ("skipped", None) for h in headers]
@@ -169,6 +203,11 @@ for i, (kind, key) in enumerate(kinds):
 collisions = {k: v for k, v in fw_cols.items() if len(v) > 1}
 
 core_idx = {key: i for i, (kind, key) in enumerate(kinds) if kind == "core"}
+for _field in ("id", "name", "description", "question", "cadence", "csf", "weighting", "pptdf", "erl"):
+    if _field not in core_idx:
+        print(f"ground-truth: main sheet lacks core column {_field!r}", file=sys.stderr)
+        sys.exit(2)
+SAMPLE_FRAMEWORKS = [k for k in (next((k for k in fw_cols if re.match(p, k)), None) for p in SAMPLE_FRAMEWORK_PATTERNS) if k]
 
 controls = 0
 ids = []
@@ -304,189 +343,206 @@ out["mainSheet"]["controlHashes"] = control_hashes
 out["samples"] = samples
 
 # ---- Domains ----------------------------------------------------------------
-ws = sheet_by(r"domains & principles")
-rows = list(ws.iter_rows(values_only=True))
-hdr = [norm(h) for h in rows[0]]
-cid = hdr.index("SCF Identifier")
-dom_ids = [norm(r[cid]) for r in rows[1:] if norm(r[cid])]
-out["domains"] = {"count": len(dom_ids), "ids": sorted(dom_ids)}
+with section("domains"):
+    ws = sheet_by(r"domains & principles")
+    rows = list(ws.iter_rows(values_only=True))
+    hdr = [norm(h) for h in rows[0]]
+    cid = hdr.index("SCF Identifier")
+    dom_ids = [norm(r[cid]) for r in rows[1:] if norm(r[cid])]
+    out["domains"] = {"count": len(dom_ids), "ids": sorted(dom_ids)}
 
 # ---- Sources ----------------------------------------------------------------
-ws = sheet_by(r"authoritative sources|focal documents")  # renamed in SCF 2026.2
-rows = list(ws.iter_rows(values_only=True))
-hdr = [norm(h) for h in rows[0]]
-ch = hdr.index("SCF Column Header")
-slugs = {slugify(r[ch]) for r in rows[1:] if norm(r[ch])}
-out["sources"] = {"uniqueCount": len(slugs)}
+with section("sources"):
+    ws = sheet_by(r"authoritative sources|focal documents")  # renamed in SCF 2026.2
+    rows = list(ws.iter_rows(values_only=True))
+    hdr = [norm(h) for h in rows[0]]
+    ch = hdr.index("SCF Column Header")
+    slugs = {slugify(r[ch]) for r in rows[1:] if norm(r[ch])}
+    out["sources"] = {"uniqueCount": len(slugs)}
 
 # ---- Assessment objectives ---------------------------------------------------
-ws = sheet_by(r"^assessment objectives")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
-crig = next(i for i, h in enumerate(hdr) if re.search(r"assessment rigor", h, re.I))  # 2026.3: "SCR CAP Assessment Rigor (AR)"
-aos, rigor_nonnull = 0, 0
-for r in rows:
-    if norm(r[cao]):
-        aos += 1
-        try:
-            if float(r[crig]):
-                rigor_nonnull += 1
-        except (TypeError, ValueError):
-            pass
-out["aos"] = {"count": aos, "rigorNonNull": rigor_nonnull}
+with section("aos"):
+    ws = sheet_by(r"^assessment objectives")
+    rows = ws.iter_rows(values_only=True)
+    hdr = [norm(h) for h in next(rows)]
+    cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
+    crig = next(i for i, h in enumerate(hdr) if re.search(r"assessment rigor", h, re.I))  # 2026.3: "SCR CAP Assessment Rigor (AR)"
+    aos, rigor_nonnull = 0, 0
+    for r in rows:
+        if norm(r[cao]):
+            aos += 1
+            try:
+                if float(r[crig]):
+                    rigor_nonnull += 1
+            except (TypeError, ValueError):
+                pass
+    out["aos"] = {"count": aos, "rigorNonNull": rigor_nonnull}
 
 # ---- ERL ---------------------------------------------------------------------
-ws = sheet_by(r"^evidence request list")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-cid_ = hdr.index("ERL #")
-cmap = hdr.index("SCF Control Mappings")
-erl_count, erl_links = 0, 0
-for r in rows:
-    if norm(r[cid_]):
-        erl_count += 1
-        erl_links += len(split_multi(r[cmap]))
-out["erl"] = {"count": erl_count, "controlLinks": erl_links}
+with section("erl"):
+    ws = sheet_by(r"^evidence request list")
+    rows = ws.iter_rows(values_only=True)
+    hdr = [norm(h) for h in next(rows)]
+    cid_ = hdr.index("ERL #")
+    cmap = hdr.index("SCF Control Mappings")
+    erl_count, erl_links = 0, 0
+    for r in rows:
+        if norm(r[cid_]):
+            erl_count += 1
+            erl_links += len(split_multi(r[cmap]))
+    out["erl"] = {"count": erl_count, "controlLinks": erl_links}
 
 # Evidence union (forward control->ERL refs + reverse ERL->control mappings)
-ws = sheet_by(r"^evidence request list")
-rows2 = ws.iter_rows(values_only=True)
-hdr2 = [norm(h) for h in next(rows2)]
-cid2, cm2 = hdr2.index("ERL #"), hdr2.index("SCF Control Mappings")
-valid_erl, rev = set(), {}
-for r in rows2:
-    eid = norm(r[cid2])
-    if not eid:
-        continue
-    valid_erl.add(eid)
-    for c in split_multi(r[cm2]):
-        rev.setdefault(c, set()).add(eid)
-union_links = 0
-for cid_x, f in fwd_erl.items():
-    union_links += len((f & valid_erl) | rev.get(cid_x, set()))
-for cid_x, rset in rev.items():
-    if cid_x not in fwd_erl:
-        union_links += len(rset)
-out["erl"]["unionLinks"] = union_links
-for sid, sample in out["samples"].items():
-    sample["erlLinked"] = sorted(
-        (set(sample["erlIds"]) & valid_erl) | rev.get(sid, set())
-    )
+with section("erl-union"):
+    ws = sheet_by(r"^evidence request list")
+    rows2 = ws.iter_rows(values_only=True)
+    hdr2 = [norm(h) for h in next(rows2)]
+    cid2, cm2 = hdr2.index("ERL #"), hdr2.index("SCF Control Mappings")
+    valid_erl, rev = set(), {}
+    for r in rows2:
+        eid = norm(r[cid2])
+        if not eid:
+            continue
+        valid_erl.add(eid)
+        for c in split_multi(r[cm2]):
+            rev.setdefault(c, set()).add(eid)
+    union_links = 0
+    for cid_x, f in fwd_erl.items():
+        union_links += len((f & valid_erl) | rev.get(cid_x, set()))
+    for cid_x, rset in rev.items():
+        if cid_x not in fwd_erl:
+            union_links += len(rset)
+    out["erl"]["unionLinks"] = union_links
+    for sid, sample in out["samples"].items():
+        sample["erlLinked"] = sorted(
+            (set(sample["erlIds"]) & valid_erl) | rev.get(sid, set())
+        )
 
 # ---- Compensating ------------------------------------------------------------
-comp_count, comp_options = 0, 0
-for _cid, _risk, opts in iter_compensating():
-    comp_count += 1
-    comp_options += len(opts)
-out["compensating"] = {"count": comp_count, "options": comp_options}
+with section("compensating"):
+    comp_count, comp_options = 0, 0
+    for _cid, _risk, opts in iter_compensating():
+        comp_count += 1
+        comp_options += len(opts)
+    out["compensating"] = {"count": comp_count, "options": comp_options}
 
 # ---- Privacy principles --------------------------------------------------------
-ws = sheet_by(r"data privacy mgmt principles")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-cnum = hdr.index("#")
-cctl = next(i for i, h in enumerate(hdr) if re.match(r"^(\d{4}\.\d+ )?scf #$", h, re.I))  # 2026.3: "2026.3 SCF #"
-principles = {}
-last = ""
-for r in rows:
-    raw = r[cnum]
-    if raw is not None and str(raw).strip():
-        if isinstance(raw, float) and raw.is_integer():
-            last = str(int(raw))
-        else:
-            last = str(raw).strip()
-    n = last
-    if n == "":
-        continue
-    c = norm(r[cctl])
-    principles.setdefault(n, set())
-    if c:
-        principles[n].add(c)
-out["privacy"] = {
-    "principles": len(principles),
-    "controlLinks": sum(len(v) for v in principles.values()),
-}
+with section("privacy"):
+    ws = sheet_by(r"data privacy mgmt principles")
+    rows = ws.iter_rows(values_only=True)
+    hdr = [norm(h) for h in next(rows)]
+    cnum = hdr.index("#")
+    cctl = next(i for i, h in enumerate(hdr) if re.match(r"^(\d{4}\.\d+ )?scf #$", h, re.I))  # 2026.3: "2026.3 SCF #"
+    principles = {}
+    last = ""
+    for r in rows:
+        raw = r[cnum]
+        if raw is not None and str(raw).strip():
+            if isinstance(raw, float) and raw.is_integer():
+                last = str(int(raw))
+            else:
+                last = str(raw).strip()
+        n = last
+        if n == "":
+            continue
+        c = norm(r[cctl])
+        principles.setdefault(n, set())
+        if c:
+            principles[n].add(c)
+    out["privacy"] = {
+        "principles": len(principles),
+        "controlLinks": sum(len(v) for v in principles.values()),
+    }
 
 # ---- Full-content hashes: AOs, ERL, compensating, domains ------------------
-ws = sheet_by(r"^assessment objectives")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-cctl = next(i for i, h in enumerate(hdr) if re.match(r"^scf #$", h, re.I))
-cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
-ctext = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\)", h, re.I))
-crig = next(i for i, h in enumerate(hdr) if re.search(r"assessment rigor", h, re.I))  # 2026.3: "SCR CAP Assessment Rigor (AR)"
-corig = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\) origin", h, re.I))
-ao_rows = []
-for r in rows:
-    aid = norm(r[cao])
-    if not aid:
-        continue
-    try:
-        rig = str(int(float(r[crig])))
-        if rig == "0":
+with section("aos-hash"):
+    ws = sheet_by(r"^assessment objectives")
+    rows = ws.iter_rows(values_only=True)
+    hdr = [norm(h) for h in next(rows)]
+    cctl = next(i for i, h in enumerate(hdr) if re.match(r"^scf #$", h, re.I))
+    cao = next(i for i, h in enumerate(hdr) if re.match(r"^scf ao #$", h, re.I))
+    ctext = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\)", h, re.I))
+    crig = next(i for i, h in enumerate(hdr) if re.search(r"assessment rigor", h, re.I))  # 2026.3: "SCR CAP Assessment Rigor (AR)"
+    corig = next(i for i, h in enumerate(hdr) if re.match(r"^scf assessment objective \(ao\) origin", h, re.I))
+    ao_rows = []
+    for r in rows:
+        aid = norm(r[cao])
+        if not aid:
+            continue
+        try:
+            rig = str(int(float(r[crig])))
+            if rig == "0":
+                rig = ""
+        except (TypeError, ValueError):
             rig = ""
-    except (TypeError, ValueError):
-        rig = ""
-    ao_rows.append("\x1f".join([aid, norm(r[cctl]), norm(r[ctext]), rig, ";".join(split_multi(r[corig]))]))
-out["aos"]["contentHash"] = md5("\n".join(sorted(ao_rows)))
+        ao_rows.append("\x1f".join([aid, norm(r[cctl]), norm(r[ctext]), rig, ";".join(split_multi(r[corig]))]))
+    out["aos"]["contentHash"] = md5("\n".join(sorted(ao_rows)))
 
-ws = sheet_by(r"^evidence request list")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-ci_ = hdr.index("ERL #")
-ca_ = hdr.index("Area of Focus")
-cart = next(i for i, h in enumerate(hdr) if re.match(r"^(documentation|erl) artifact$", h, re.I))  # 2026.3: "ERL Artifact"
-cd_ = next(i for i, h in enumerate(hdr) if re.search(r"artifact description$", h, re.I))  # 2026.3: "Evidence Request List (ERL) Artifact Description"
-cm_ = hdr.index("SCF Control Mappings")
-erl_rows = []
-for r in rows:
-    eid = norm(r[ci_])
-    if not eid:
-        continue
-    erl_rows.append("\x1f".join([eid, norm(r[ca_]), norm(r[cart]), norm(r[cd_]), ";".join(split_multi(r[cm_]))]))
-out["erl"]["contentHash"] = md5("\n".join(sorted(erl_rows)))
+with section("erl-hash"):
+    ws = sheet_by(r"^evidence request list")
+    rows = ws.iter_rows(values_only=True)
+    hdr = [norm(h) for h in next(rows)]
+    ci_ = hdr.index("ERL #")
+    ca_ = hdr.index("Area of Focus")
+    cart = next(i for i, h in enumerate(hdr) if re.match(r"^(documentation|erl) artifact$", h, re.I))  # 2026.3: "ERL Artifact"
+    cd_ = next(i for i, h in enumerate(hdr) if re.search(r"artifact description$", h, re.I))  # 2026.3: "Evidence Request List (ERL) Artifact Description"
+    cm_ = hdr.index("SCF Control Mappings")
+    erl_rows = []
+    for r in rows:
+        eid = norm(r[ci_])
+        if not eid:
+            continue
+        erl_rows.append("\x1f".join([eid, norm(r[ca_]), norm(r[cart]), norm(r[cd_]), ";".join(split_multi(r[cm_]))]))
+    out["erl"]["contentHash"] = md5("\n".join(sorted(erl_rows)))
 
-comp_rows = []
-for cid_v, risk_v, opts in iter_compensating():
-    comp_rows.append("\x1f".join([cid_v, risk_v, "|".join(f"{oid}:{nm}:{js}" for oid, nm, js in opts)]))
-out["compensating"]["contentHash"] = md5("\n".join(sorted(comp_rows)))
+with section("compensating-hash"):
+    comp_rows = []
+    for cid_v, risk_v, opts in iter_compensating():
+        comp_rows.append("\x1f".join([cid_v, risk_v, "|".join(f"{oid}:{nm}:{js}" for oid, nm, js in opts)]))
+    out["compensating"]["contentHash"] = md5("\n".join(sorted(comp_rows)))
 
-ws = sheet_by(r"domains & principles")
-rows = list(ws.iter_rows(values_only=True))
-hdr = [norm(h) for h in rows[0]]
-ci_ = hdr.index("SCF Identifier")
-cn_ = hdr.index("SCF Domain")
-cp_ = next(i for i, h in enumerate(hdr) if h.endswith("Principles"))
-cin_ = hdr.index("Principle Intent")
-dom_rows = []
-for r in rows[1:]:
-    if norm(r[ci_]):
-        dom_rows.append("\x1f".join([norm(r[ci_]), norm(r[cn_]), norm(r[cp_]), norm(r[cin_])]))
-out["domains"]["contentHash"] = md5("\n".join(sorted(dom_rows)))
+with section("domains-hash"):
+    ws = sheet_by(r"domains & principles")
+    rows = list(ws.iter_rows(values_only=True))
+    hdr = [norm(h) for h in rows[0]]
+    ci_ = hdr.index("SCF Identifier")
+    cn_ = hdr.index("SCF Domain")
+    cp_ = next(i for i, h in enumerate(hdr) if h.endswith("Principles"))
+    cin_ = hdr.index("Principle Intent")
+    dom_rows = []
+    for r in rows[1:]:
+        if norm(r[ci_]):
+            dom_rows.append("\x1f".join([norm(r[ci_]), norm(r[cn_]), norm(r[cp_]), norm(r[cin_])]))
+    out["domains"]["contentHash"] = md5("\n".join(sorted(dom_rows)))
 
 # ---- Risk / Threat catalogs -----------------------------------------------------
 for key, pat, grp_hdr, id_hdr in [
     ("risks", r"risk catalog", "risk grouping", "risk #"),
     ("threats", r"threat catalog", "threat grouping", "threat #"),
 ]:
-    ws = sheet_by(pat)
-    rows = list(ws.iter_rows(values_only=True))
-    hrow = next(i for i, r in enumerate(rows) if norm(r[0]).lower() == grp_hdr)
-    hdr = [norm(h).lower() for h in rows[hrow]]
-    cid_ = hdr.index(id_hdr)
-    cname = next(i for i, h in enumerate(hdr) if h.startswith(id_hdr.split(" ")[0] + "*"))
-    cdesc = next(i for i, h in enumerate(hdr) if "description" in h)
-    entries = []
-    cat_rows = []
-    for r in rows[hrow + 1:]:
-        rid = norm(r[cid_])
-        if not rid:
-            continue
-        entries.append(rid)
-        cat_rows.append("\x1f".join([rid, norm(r[cname]), norm(r[cdesc])]))
-    out[key] = {"count": len(entries), "ids": sorted(entries), "contentHash": md5("\n".join(sorted(cat_rows)))}
+    with section(key):
+        ws = sheet_by(pat)
+        rows = list(ws.iter_rows(values_only=True))
+        hrow = next(i for i, r in enumerate(rows) if norm(r[0]).lower() == grp_hdr)
+        hdr = [norm(h).lower() for h in rows[hrow]]
+        cid_ = hdr.index(id_hdr)
+        cname = next(i for i, h in enumerate(hdr) if h.startswith(id_hdr.split(" ")[0] + "*"))
+        cdesc = next(i for i, h in enumerate(hdr) if "description" in h)
+        entries = []
+        cat_rows = []
+        for r in rows[hrow + 1:]:
+            rid = norm(r[cid_])
+            if not rid:
+                continue
+            entries.append(rid)
+            cat_rows.append("\x1f".join([rid, norm(r[cname]), norm(r[cdesc])]))
+        out[key] = {"count": len(entries), "ids": sorted(entries), "contentHash": md5("\n".join(sorted(cat_rows)))}
 
+out["missing"] = missing
 json.dump(out, sys.stdout, indent=1, sort_keys=True)
 print(file=sys.stderr)
-print(f"controls={controls} aos={aos} erl={erl_count} sources={len(slugs)}", file=sys.stderr)
+print(
+    f"controls={controls} aos={out.get('aos', {}).get('count')} erl={out.get('erl', {}).get('count')} "
+    f"sources={out.get('sources', {}).get('uniqueCount')} missing={len(missing)}",
+    file=sys.stderr,
+)

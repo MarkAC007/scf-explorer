@@ -47,7 +47,7 @@ describe('modelStore', () => {
     const store2 = createModelStore(directParse)
     await store2.getState().initFromCache()
     expect(store2.getState().status).toBe('ready')
-    expect(store2.getState().model!.version).toBe('2026.1')
+    expect(store2.getState().model!.version).toBe(store1.getState().model!.version)
   })
 
   it('clearWorkbook empties store and cache', async () => {

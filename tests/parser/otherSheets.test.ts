@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sheet } from '../helpers/fixture'
+import { sheet, hasSheet, fixtureExpectations } from '../helpers/fixture'
 import { parseAssessmentObjectives } from '../../src/parser/sheets/assessmentObjectives'
 import { parseErl } from '../../src/parser/sheets/erl'
 import { parseCompensating } from '../../src/parser/sheets/compensating'
@@ -23,17 +23,20 @@ describe('parseErl', () => {
   const erl = parseErl(sheet(/^evidence request list/i))
   it('parses artifacts with control mappings', () => {
     expect(erl.length).toBeGreaterThan(10)
-    const e = erl.find((x) => x.id === 'E-GOV-01')
+    const sample = fixtureExpectations().erlSample
+    const e = erl.find((x) => x.id === sample.id)
     expect(e).toBeDefined()
     expect(e!.artifact.length).toBeGreaterThan(3)
-    expect(e!.controlIds).toContain('GOV-01')
+    expect(e!.controlIds).toEqual(sample.controlIds)
   })
 })
 
-describe('parseCompensating', () => {
-  const comp = parseCompensating(sheet(/^compensating controls/i))
+// Dedicated sheet exists through SCF 2026.2; 2026.3 folds the columns into the main sheet.
+const COMP = /^compensating controls/i
+describe.skipIf(!hasSheet(COMP))('parseCompensating', () => {
+  const comp = hasSheet(COMP) ? parseCompensating(sheet(COMP)) : []
   it('parses one entry per control', () => {
-    expect(comp.length).toBe(101)
+    expect(comp.length).toBe(fixtureExpectations().controlCount)
   })
   it('GOV-01 is not eligible and has zero options', () => {
     const g = comp.find((c) => c.controlId === 'GOV-01')!
@@ -54,12 +57,13 @@ describe('parsePrivacyPrinciples', () => {
   const pps = parsePrivacyPrinciples(sheet(/data privacy mgmt principles/i))
   it('groups rows by principle and collects control ids', () => {
     expect(pps.length).toBeGreaterThanOrEqual(1)
-    const p1 = pps.find((p) => p.num === '1')!
-    expect(p1.name).toBe('Data Privacy by Design')
-    expect(p1.controlIds).toContain('GOV-01')
+    const sample = fixtureExpectations().privacySample
+    const p1 = pps.find((p) => p.num === sample.num)!
+    expect(p1.name).toBe(sample.name)
+    expect(p1.controlIds).toContain(sample.controlId)
   })
   it('collects privacy framework mappings', () => {
-    const p1 = pps.find((p) => p.num === '1')!
+    const p1 = pps.find((p) => p.num === fixtureExpectations().privacySample.num)!
     expect(Object.keys(p1.mappings).length).toBeGreaterThan(0)
   })
 })

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as XLSX from 'xlsx'
-import { loadFixture } from '../helpers/fixture'
+import { loadFixture, hasSheet, fixtureExpectations } from '../helpers/fixture'
 import { parseWorkbook } from '../../src/parser/parseWorkbook'
 import { parseErl } from '../../src/parser/sheets/erl'
 import { parseAssessmentObjectives } from '../../src/parser/sheets/assessmentObjectives'
@@ -45,23 +45,29 @@ const dropColumn = (wb: XLSX.WorkBook, sheetPattern: RegExp, header: string): vo
   wb.Sheets[name] = XLSX.utils.aoa_to_sheet(trimmed)
 }
 
-describe('2026.3 sheet name: Focal Documents (FD)', () => {
-  const buf = rebuildFixture((wb) => renameSheet(wb, /authoritative sources/i, 'Focal Documents (FD)'))
-  const model = parseWorkbook(buf, 'renamed.xlsx')
+// These two rebuilds mutate a pre-2026.3 fixture into the 2026.3 shape; a fixture generated
+// from 2026.3 already has that shape and is covered by the ordinary suites.
+const LEGACY_SOURCES = hasSheet(/authoritative sources/i)
+describe.skipIf(!LEGACY_SOURCES)('2026.3 sheet name: Focal Documents (FD)', () => {
+  const buf = LEGACY_SOURCES
+    ? rebuildFixture((wb) => renameSheet(wb, /authoritative sources/i, 'Focal Documents (FD)'))
+    : null
+  const model = buf ? parseWorkbook(buf, 'renamed.xlsx') : null!
   it('matches the renamed sources sheet with no warning', () => {
     expect(model.parseReport.warnings).not.toContain('Sheet not found: sources')
     expect(model.parseReport.sheets.find((s) => s.name === 'sources')?.matched).toBe('Focal Documents (FD)')
   })
   it('enriches frameworks from the renamed sheet', () => {
-    const f = model.frameworks.find((x) => x.id === 'nist-800-53-r5')
+    const f = model.frameworks.find((x) => x.id === fixtureExpectations().nist)
     expect(f?.fromSources).toBe(true)
     expect(f?.sourceUrl ?? f?.name).toBeTruthy()
   })
 })
 
-describe('2026.3 domains sheet without Control Count', () => {
-  const buf = rebuildFixture((wb) => dropColumn(wb, /domains & principles/i, 'Control Count'))
-  const model = parseWorkbook(buf, 'nocount.xlsx')
+const HAS_COUNT = fixtureExpectations().hasDomainControlCount
+describe.skipIf(!HAS_COUNT)('2026.3 domains sheet without Control Count', () => {
+  const buf = HAS_COUNT ? rebuildFixture((wb) => dropColumn(wb, /domains & principles/i, 'Control Count')) : null
+  const model = buf ? parseWorkbook(buf, 'nocount.xlsx') : null!
   it('derives controlCount from the main sheet', () => {
     const gov = model.domains.find((d) => d.id === 'GOV')!
     const expected = model.controls.filter((c) => c.domainId === 'GOV').length

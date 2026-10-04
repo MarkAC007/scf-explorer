@@ -8,6 +8,7 @@ import { parseWorkbook } from '../../src/parser/parseWorkbook'
 import { buildIndexes } from '../../src/model/indexes'
 import { modelStore } from '../../src/store/modelStore'
 import DashboardView from '../../src/views/DashboardView'
+import { fixtureExpectations } from '../helpers/fixture'
 
 beforeAll(() => {
   const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
@@ -25,11 +26,10 @@ describe('DashboardView', () => {
         <DashboardView />
       </MemoryRouter>,
     )
-    expect(screen.getByText('101')).toBeInTheDocument() // controls stat
-    expect(screen.getByText('33')).toBeInTheDocument() // domains stat
+    const exp = fixtureExpectations()
+    expect(screen.getByText(exp.controlCount.toLocaleString())).toBeInTheDocument() // controls stat
+    expect(screen.getByText(exp.domainCount.toLocaleString())).toBeInTheDocument() // domains stat
     expect(screen.getAllByRole('link', { name: /GOV/ }).length).toBeGreaterThanOrEqual(1)
-    expect(
-      screen.getByText(/Cybersecurity & Data Protection Governance/i),
-    ).toBeInTheDocument()
+    expect(screen.getAllByText(exp.domainNames.get('GOV')!).length).toBeGreaterThanOrEqual(1)
   })
 })

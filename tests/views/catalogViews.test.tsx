@@ -12,13 +12,15 @@ import ThreatsView from '../../src/views/ThreatsView'
 import BaselinesView from '../../src/views/BaselinesView'
 import SourcesView from '../../src/views/SourcesView'
 import PrivacyView from '../../src/views/PrivacyView'
+import { fixtureExpectations } from '../helpers/fixture'
+
+const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
+const model = parseWorkbook(
+  buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
+  'f.xlsx',
+)
 
 beforeAll(() => {
-  const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
-  const model = parseWorkbook(
-    buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
-    'f.xlsx',
-  )
   modelStore.setState({ model, indexes: buildIndexes(model), status: 'ready' })
 })
 
@@ -27,7 +29,7 @@ const wrap = (el: React.ReactElement) => render(<MemoryRouter>{el}</MemoryRouter
 describe('RisksView', () => {
   it('renders the risk catalog with linked-control counts', () => {
     wrap(<RisksView />)
-    expect(screen.getByText('R-AC-1')).toBeInTheDocument()
+    expect(screen.getByText(model.risks[0].id)).toBeInTheDocument()
     expect(screen.getAllByText(/\d+ controls?$/).length).toBeGreaterThan(5)
   })
 })
@@ -35,14 +37,14 @@ describe('RisksView', () => {
 describe('ThreatsView', () => {
   it('renders the threat catalog', () => {
     wrap(<ThreatsView />)
-    expect(screen.getByText('MT-1')).toBeInTheDocument()
+    expect(screen.getByText(model.threats[0].id)).toBeInTheDocument()
   })
 })
 
 describe('BaselinesView', () => {
   it('renders baseline cards with counts', () => {
     wrap(<BaselinesView />)
-    expect(screen.getByText(/ESP Level 1/i)).toBeInTheDocument()
+    expect(screen.getAllByText(model.baselineDefs[0].label).length).toBeGreaterThanOrEqual(1)
   })
 })
 
@@ -58,7 +60,8 @@ describe('SourcesView', () => {
 describe('PrivacyView', () => {
   it('renders privacy principles with linked controls', () => {
     wrap(<PrivacyView />)
-    expect(screen.getByText(/Data Privacy by Design/)).toBeInTheDocument()
-    expect(screen.getAllByText('GOV-01').length).toBeGreaterThanOrEqual(1)
+    const sample = fixtureExpectations().privacySample
+    expect(screen.getAllByText(new RegExp(sample.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(sample.controlId).length).toBeGreaterThanOrEqual(1)
   })
 })

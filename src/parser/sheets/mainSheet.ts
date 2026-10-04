@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import type { BaselineDef, CompensatingEntry, CompensatingOption, Control, Framework, MaturityLevel } from '../../model/types'
+import type { BaselineDef, CompensatingEntry, CompensatingOption, Control, Framework, Likelihood, MaturityLevel } from '../../model/types'
 import { normalizeHeader, slugify } from '../headerMatch'
 
 export interface MainSheetResult {
@@ -77,6 +77,12 @@ const splitMulti = (v: unknown): string[] =>
     .split('\n')
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
+
+/** 2026.3+ risk/threat cells hold a likelihood word; earlier releases hold the id or nothing. */
+export const parseLikelihood = (v: unknown): Likelihood | null => {
+  const s = String(v ?? '').trim().toLowerCase()
+  return s === 'unlikely' || s === 'possible' || s === 'likely' ? s : null
+}
 
 const isNa = (s: string): boolean => /^(n\/?a|none)$/i.test(s) || s === ''
 
@@ -157,6 +163,8 @@ export const parseMainSheet = (
     const scrmTiers: number[] = []
     const riskIds: string[] = []
     const threatIds: string[] = []
+    const riskLikelihood: Record<string, Likelihood> = {}
+    const threatLikelihood: Record<string, Likelihood> = {}
     const mappings: Record<string, string[]> = {}
     let errata = ''
     let legacyIds: string[] = []
@@ -196,12 +204,18 @@ export const parseMainSheet = (
         case 'tier':
           if (filled) scrmTiers.push(k.tier)
           break
-        case 'risk':
-          if (filled) riskIds.push(k.id)
+        case 'risk': {
+          const rating = parseLikelihood(v)
+          if (rating) riskLikelihood[k.id] = rating
+          if (rating ? rating !== 'unlikely' : filled) riskIds.push(k.id)
           break
-        case 'threat':
-          if (filled) threatIds.push(k.id)
+        }
+        case 'threat': {
+          const rating = parseLikelihood(v)
+          if (rating) threatLikelihood[k.id] = rating
+          if (rating ? rating !== 'unlikely' : filled) threatIds.push(k.id)
           break
+        }
         case 'framework': {
           const refs = splitMulti(v)
           if (refs.length) mappings[k.id] = refs
@@ -255,6 +269,8 @@ export const parseMainSheet = (
       mappings,
       riskIds,
       threatIds,
+      riskLikelihood,
+      threatLikelihood,
       errata,
       row: rowIdx + 2,
     })

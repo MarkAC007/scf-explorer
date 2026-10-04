@@ -21,11 +21,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Cache SCF workbook
+      - name: Cache SCF workbook (2026.1.1)
         uses: actions/cache@v6.1.0
         with:
           path: .scf-cache
-          key: scf-workbook-2026.1.1
+          key: scf-workbook-ef13a69f58e3290168b0d582330b87d22d4ee39e846ec64c3d4e98e7886c312e
       - name: Fetch official SCF workbook and generate test fixture
         # The SCF is CC BY-ND 4.0, so no SCF content (not even a trimmed slice)
         # lives in this repo. Tests fetch the unmodified official release from
@@ -46,9 +46,56 @@ jobs:
           npx playwright test e2e/fixture.spec.ts e2e/scope.spec.ts e2e/landing.spec.ts
         if: hashFiles('e2e/fixture.spec.ts') != ''
 
+  # Parser compatibility per SCF release. Every job runs the fixture-based parser suites,
+  # the release-independent invariants in tests/compat on the FULL workbook, and the
+  # dual-parser integrity cross-check (openpyxl vs SheetJS). A new release goes green here
+  # only when the viewer reads it correctly — #35–#38 shipped because nothing did this.
+  compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release:
+          - version: "2026.1.1"
+            url: https://github.com/securecontrolsframework/securecontrolsframework/releases/download/2026.1.1/Secure.Controls.Framework.SCF.-.2026.1.1.xlsx
+            sha256: ef13a69f58e3290168b0d582330b87d22d4ee39e846ec64c3d4e98e7886c312e
+          - version: "2026.3"
+            url: https://github.com/securecontrolsframework/securecontrolsframework/releases/download/2026.3/secure-controls-framework-scf-2026-3.xlsx
+            sha256: 5a89bf2d3c106a9a87d4b6e3d62dd3e147d0e960d4c07473045a10aa8a7df697
+    name: compat (${{ matrix.release.version }})
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install openpyxl for the independent Python parser
+        run: python3 -m pip install --quiet --disable-pip-version-check openpyxl==3.1.5
+      - name: Cache SCF workbook (${{ matrix.release.version }})
+        uses: actions/cache@v6.1.0
+        with:
+          path: .scf-cache
+          key: scf-workbook-${{ matrix.release.sha256 }}
+      - name: Fetch official SCF ${{ matrix.release.version }} workbook (sha256-pinned)
+        run: |
+          mkdir -p .scf-cache
+          [ -f .scf-cache/scf.xlsx ] || curl -sSL --retry 3 -o .scf-cache/scf.xlsx "${{ matrix.release.url }}"
+          echo "${{ matrix.release.sha256 }}  .scf-cache/scf.xlsx" | sha256sum -c -
+      - name: Parser suites on a fixture derived from ${{ matrix.release.version }}
+        run: |
+          SCF_XLSX=.scf-cache/scf.xlsx node scripts/make-fixture.mjs
+          npx vitest run tests/parser tests/views tests/scope tests/store
+      - name: Release-independent invariants on the full workbook
+        run: SCF_XLSX=.scf-cache/scf.xlsx npx vitest run tests/compat
+      - name: Dual-parser integrity (openpyxl ground truth vs SheetJS)
+        run: |
+          SCF_XLSX=.scf-cache/scf.xlsx python3 scripts/ground-truth.py > .scf-cache/ground-truth.json
+          SCF_XLSX=.scf-cache/scf.xlsx GROUND_TRUTH=.scf-cache/ground-truth.json npx vitest run tests/integrity
+
   deploy:
     if: github.ref == 'refs/heads/main'
-    needs: test
+    needs: [test, compat]
     runs-on: ubuntu-latest
     permissions:
       pages: write

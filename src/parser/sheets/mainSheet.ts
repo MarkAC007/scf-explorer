@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import type { BaselineDef, Control, Framework, MaturityLevel } from '../../model/types'
+import type { BaselineDef, CompensatingEntry, CompensatingOption, Control, Framework, MaturityLevel } from '../../model/types'
 import { normalizeHeader, slugify } from '../headerMatch'
 
 export interface MainSheetResult {
@@ -8,6 +8,8 @@ export interface MainSheetResult {
   baselineDefs: BaselineDef[]
   unmapped: string[]
   frameworks: Framework[]
+  /** Compensating-control entries when the workbook folds them into the main sheet (2026.3+); empty otherwise. */
+  compensating: CompensatingEntry[]
 }
 
 type ColKind =
@@ -19,6 +21,9 @@ type ColKind =
   | { kind: 'risk'; id: string }
   | { kind: 'threat'; id: string }
   | { kind: 'errata' }
+  | { kind: 'legacy' }
+  | { kind: 'orphaned' }
+  | { kind: 'compensating'; role: 'risk' | 'id' | 'name' | 'description' | 'justification'; n: number }
   | { kind: 'skipped' }
   | { kind: 'framework'; id: string }
 
@@ -54,6 +59,15 @@ export const classifyColumn = (header: string): ColKind => {
   const threat = header.match(/^threat ((?:nt|mt)-\d+)$/i)
   if (threat) return { kind: 'threat', id: threat[1].toUpperCase() }
   if (/^errata/i.test(header)) return { kind: 'errata' }
+  // SCF 2026.3 additions to the main sheet — none of these are framework mappings.
+  if (/^legacy scf #$/i.test(header)) return { kind: 'legacy' }
+  if (/^orphaned controls\b/i.test(header)) return { kind: 'orphaned' }
+  if (/^risk if primary control/i.test(header)) return { kind: 'compensating', role: 'risk', n: 0 }
+  const compId = header.match(/^possible compensating control #\s*(\d+)$/i)
+  if (compId) return { kind: 'compensating', role: 'id', n: Number(compId[1]) }
+  const compField = header.match(/^compensating control #\s*(\d+) (name|description|justification)$/i)
+  if (compField)
+    return { kind: 'compensating', role: compField[2].toLowerCase() as 'name' | 'description' | 'justification', n: Number(compField[1]) }
   if (SKIPPED.test(header)) return { kind: 'skipped' }
   return { kind: 'framework', id: slugify(header) }
 }
@@ -63,6 +77,15 @@ const splitMulti = (v: unknown): string[] =>
     .split('\n')
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
+
+const isNa = (s: string): boolean => /^(n\/?a|none)$/i.test(s) || s === ''
+
+/** "Legacy SCF #" cells hold NONE, one id, or several ids separated by newlines/semicolons/commas. */
+const splitLegacyIds = (v: unknown): string[] =>
+  String(v ?? '')
+    .split(/[\n;,]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !isNa(s))
 
 export const parseMainSheet = (
   ws: XLSX.WorkSheet,
@@ -120,6 +143,9 @@ export const parseMainSheet = (
     return i === undefined ? null : row[i]
   }
 
+  const hasCompensating = kinds.some((k) => k.kind === 'compensating')
+  const compensating: CompensatingEntry[] = []
+
   const controls: Control[] = []
   rows.slice(1).forEach((row, rowIdx) => {
     const id = String(cell(row, 'id') ?? '').trim()
@@ -133,11 +159,27 @@ export const parseMainSheet = (
     const threatIds: string[] = []
     const mappings: Record<string, string[]> = {}
     let errata = ''
+    let legacyIds: string[] = []
+    let riskNote = ''
+    const compOptions = new Map<number, Partial<CompensatingOption>>()
 
     kinds.forEach((k, i) => {
       const v = row[i]
       const filled = v != null && String(v).trim() !== ''
       switch (k.kind) {
+        case 'legacy':
+          legacyIds = splitLegacyIds(v)
+          break
+        case 'compensating': {
+          const text = String(v ?? '').trim()
+          if (k.role === 'risk') riskNote = text
+          else {
+            const opt = compOptions.get(k.n) ?? {}
+            opt[k.role] = text
+            compOptions.set(k.n, opt)
+          }
+          break
+        }
         case 'maturity':
           maturity.push({
             level: k.level as MaturityLevel['level'],
@@ -173,9 +215,26 @@ export const parseMainSheet = (
 
     maturity.sort((a, b) => a.level - b.level)
 
+    if (hasCompensating) {
+      const options: CompensatingOption[] = []
+      for (const n of [...compOptions.keys()].sort((a, b) => a - b)) {
+        const o = compOptions.get(n)!
+        const optId = o.id ?? ''
+        if (isNa(optId)) continue
+        options.push({
+          id: optId,
+          name: o.name ?? '',
+          justification: o.justification ?? '',
+          ...(o.description !== undefined ? { description: o.description } : {}),
+        })
+      }
+      compensating.push({ controlId: id, riskNote, options })
+    }
+
     controls.push({
       id,
       domainId: id.split('-')[0],
+      legacyIds,
       name: String(cell(row, 'name') ?? '').trim(),
       description: String(cell(row, 'description') ?? '').trim(),
       question: String(cell(row, 'question') ?? '').trim(),
@@ -201,5 +260,5 @@ export const parseMainSheet = (
     })
   })
 
-  return { controls, discoveredFrameworkHeaders, baselineDefs, unmapped, frameworks }
+  return { controls, discoveredFrameworkHeaders, baselineDefs, unmapped, frameworks, compensating }
 }

@@ -3,6 +3,7 @@ import { db } from '../store/db'
 import type { ModelIndexes } from '../model/indexes'
 import type { ScfModel } from '../model/types'
 import { scopeControlIds, type ScopeDef } from './scopeMath'
+import { describeMigration, migrateFrameworkIds } from './scopeMigrate'
 
 const ACTIVE_KEY = 'scf-explorer:active-scope'
 
@@ -54,17 +55,17 @@ export const createScopeStore = (): StoreApi<ScopeState> => {
         ix = indexes
         const rows = await db.scopes.toArray()
         const notices: string[] = []
-        // Revalidate against the loaded workbook: drop frameworks it doesn't know.
+        // Revalidate against the loaded workbook: follow framework renames across SCF
+        // releases where the new slug is unambiguous, drop what cannot be resolved.
+        const known = new Set(ix.frameworkById.keys())
         for (const s of rows) {
-          const valid = s.frameworkIds.filter((fw) => ix!.frameworkById.has(fw))
-          if (valid.length !== s.frameworkIds.length) {
-            const dropped = s.frameworkIds.filter((fw) => !ix!.frameworkById.has(fw))
-            notices.push(
-              `Scope “${s.name}”: dropped ${dropped.length} framework(s) not present in SCF ${m.version} (${dropped.join(', ')})`,
-            )
-            s.frameworkIds = valid
-            await db.scopes.put(s)
-          }
+          const r = migrateFrameworkIds(s.frameworkIds, known)
+          if (!r.changed) continue
+          const notice = describeMigration(s.name, m.version, r)
+          if (notice) notices.push(notice)
+          s.frameworkIds = r.frameworkIds
+          s.scfVersion = m.version
+          await db.scopes.put(s)
         }
         let activeScope: ScopeDef | null = null
         try {

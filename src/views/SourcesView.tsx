@@ -15,10 +15,11 @@ export default function SourcesView() {
 
   return (
     <div className="mx-auto max-w-5xl p-8">
-      <h1 className="text-2xl font-bold tracking-tight text-gray-900">Authoritative sources</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-gray-900">Focal documents</h1>
       <p className="mt-2 max-w-3xl text-gray-600">
-        Every law, regulation and framework the SCF maps to, with links to the source
-        document and the SCF's set-theory relationship mapping (STRM) where published.
+        Every law, regulation and framework the SCF maps to (the SCF called these
+        &ldquo;authoritative sources&rdquo; before 2026.2), with links to the source document
+        and the SCF's set-theory relationship mapping (STRM) where published.
       </p>
       {[...byGeo.entries()]
         .sort(([a], [b]) => a.localeCompare(b))

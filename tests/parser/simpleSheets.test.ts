@@ -20,7 +20,7 @@ describe('parseDomains', () => {
 })
 
 describe('parseSources', () => {
-  const sources = parseSources(sheet(/authoritative sources/i))
+  const sources = parseSources(sheet(/authoritative sources|focal documents/i))
   it('parses a large catalog', () => {
     expect(sources.length).toBeGreaterThanOrEqual(200)
   })

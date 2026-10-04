@@ -7,8 +7,8 @@ export const parseErl = (ws: XLSX.WorkSheet): ErlItem[] => {
   const headers = (rows[0] ?? []).map(normalizeHeader)
   const cId = findColumn(headers, /^erl #$/i)
   const cArea = findColumn(headers, /^area of focus$/i)
-  const cArtifact = findColumn(headers, /^documentation artifact$/i)
-  const cDesc = findColumn(headers, /^artifact description$/i)
+  const cArtifact = findColumn(headers, /^documentation artifact$/i, /^erl artifact$/i) // 2026.3 rename
+  const cDesc = findColumn(headers, /^artifact description$/i, /\(erl\) artifact description$/i) // 2026.3 rename
   const cControls = findColumn(headers, /^scf control mappings$/i)
 
   const out: ErlItem[] = []

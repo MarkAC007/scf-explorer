@@ -3,7 +3,7 @@ import { sheet } from '../helpers/fixture'
 import { parseMainSheet } from '../../src/parser/sheets/mainSheet'
 import { parseSources } from '../../src/parser/sheets/sources'
 
-const knownFrameworks = parseSources(sheet(/authoritative sources/i))
+const knownFrameworks = parseSources(sheet(/authoritative sources|focal documents/i))
 const result = parseMainSheet(sheet(/^scf 20/i), knownFrameworks)
 const gov01 = result.controls.find((c) => c.id === 'GOV-01')!
 

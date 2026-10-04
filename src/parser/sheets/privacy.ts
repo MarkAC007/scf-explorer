@@ -12,7 +12,7 @@ export const parsePrivacyPrinciples = (ws: XLSX.WorkSheet): PrivacyPrinciple[] =
   const cNum = findColumn(headers, /^#$/)
   const cName = findColumn(headers, /^principle name$/i)
   const cDesc = findColumn(headers, /description$/i)
-  const cControl = findColumn(headers, /^scf #$/i)
+  const cControl = findColumn(headers, /^scf #$/i, /^\d{4}\.\d+ scf #$/i) // 2026.3: "2026.3 SCF #"
 
   // mapping columns = everything after the SCF control description column that isn't fixed
   const fixed = new Set([cNum, cName, cDesc, cControl, findColumn(headers, /^scf control$/i), findColumn(headers, /^secure controls framework \(scf\) control description$/i)])

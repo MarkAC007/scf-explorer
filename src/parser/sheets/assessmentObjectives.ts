@@ -16,7 +16,7 @@ export const parseAssessmentObjectives = (ws: XLSX.WorkSheet): AssessmentObjecti
   const cText = findColumn(headers, /^scf assessment objective \(ao\)/i)
   const cPptdf = findColumn(headers, /^pptdf applicability$/i)
   const cOrigins = findColumn(headers, /^scf assessment objective \(ao\) origin/i)
-  const cRigor = findColumn(headers, /^assessment rigor/i)
+  const cRigor = findColumn(headers, /^assessment rigor/i, /assessment rigor \(ar\)/i) // 2026.3: "SCR CAP Assessment Rigor (AR)"
   const cSdp = findColumn(headers, /^scf defined parameters/i)
   const cOdp = findColumn(headers, /^organization defined parameters/i)
 

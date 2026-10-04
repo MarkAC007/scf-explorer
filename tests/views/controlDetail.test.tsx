@@ -9,6 +9,7 @@ import { buildIndexes } from '../../src/model/indexes'
 import { modelStore } from '../../src/store/modelStore'
 import { groupMappings } from '../../src/views/controlDetail.helpers'
 import ControlDetailView from '../../src/views/ControlDetailView'
+import { fixtureExpectations } from '../helpers/fixture'
 
 const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
 const model = parseWorkbook(
@@ -34,9 +35,11 @@ describe('groupMappings', () => {
     expect([...names].sort((a, b) => a.localeCompare(b))).toEqual(names)
   })
   it('carries refs through', () => {
-    const all = groups.flatMap((g) => g.items)
-    const nist = all.find((i) => i.framework.id === 'nist-800-53-r5')
-    expect(nist!.refs).toContain('PM-01')
+    const exp = fixtureExpectations()
+    const id = exp.sampleMapped(exp.nist)
+    const all = groupMappings(indexes.controlById.get(id)!, indexes.frameworkById).flatMap((g) => g.items)
+    const nist = all.find((i) => i.framework.id === exp.nist)
+    expect(nist!.refs).toEqual(exp.rawMappingRefs(id, exp.nist))
   })
   it('drops frameworks with no refs for this control', () => {
     const all = groups.flatMap((g) => g.items)
@@ -56,8 +59,8 @@ describe('ControlDetailView', () => {
 
   it('renders GOV-01 header and maturity ladder by default', () => {
     renderAt('GOV-01')
-    expect(screen.getByText('GOV-01')).toBeInTheDocument()
-    expect(screen.getByText(/^Mechanisms exist to facilitate/)).toBeInTheDocument()
+    expect(screen.getAllByText('GOV-01').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText(/^Mechanisms exist/)).toBeInTheDocument()
     expect(screen.getAllByText(/Performed Informally/i).length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText(/Continuously Improving/i).length).toBeGreaterThanOrEqual(1)
   })

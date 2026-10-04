@@ -10,6 +10,7 @@ import { modelStore } from '../../src/store/modelStore'
 import { scopeStore } from '../../src/scope/scopeStore'
 import { db } from '../../src/store/db'
 import ProgramView from '../../src/views/ProgramView'
+import { fixtureExpectations } from '../helpers/fixture'
 
 const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
 const model = parseWorkbook(
@@ -17,6 +18,7 @@ const model = parseWorkbook(
   'f.xlsx',
 )
 const indexes = buildIndexes(model)
+const { nist: NIST, iso: ISO } = fixtureExpectations()
 
 beforeAll(async () => {
   modelStore.setState({ model, indexes, status: 'ready' })
@@ -44,7 +46,7 @@ describe('ProgramView', () => {
 
   it('selecting frameworks shows scope size, shape and rollups', () => {
     renderAt()
-    const nist = document.querySelector('label[data-fw="nist-800-53-r5"]')!
+    const nist = document.querySelector(`label[data-fw="${NIST}"]`)!
     fireEvent.click(nist.querySelector('input')!)
     expect(screen.getByText(/% of the SCF/)).toBeInTheDocument()
     expect(screen.getByText('Program shape')).toBeInTheDocument()
@@ -53,9 +55,9 @@ describe('ProgramView', () => {
   })
 
   it('seeds the selection from a share URL', () => {
-    renderAt('/program?fw=nist-800-53-r5&fw=iso-27002-2022')
+    renderAt(`/program?fw=${NIST}&fw=${ISO}`)
     const selected = screen.getByTestId('selected-frameworks')
-    expect(selected.textContent).toMatch(/800-53/)
+    expect(selected.textContent).toMatch(/800\s*-\s*53/)
     expect(selected.textContent).toMatch(/27002/)
     expect(screen.getByText(/Spine — required by every framework/)).toBeInTheDocument()
   })

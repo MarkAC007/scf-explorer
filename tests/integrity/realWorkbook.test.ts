@@ -34,6 +34,12 @@ describe.skipIf(!SCF || !GT)('real workbook vs independent ground truth', () => 
     expect(model.parseReport.sheets.length).toBeGreaterThanOrEqual(9)
   })
 
+  it('independent extraction is complete (ground-truth.py skipped no section)', () => {
+    // ground-truth.py degrades instead of crashing on an unexpected layout and lists
+    // what it skipped; integrity needs both parsers to have read everything.
+    expect(gt.missing ?? []).toEqual([])
+  })
+
   it('control set is identical (count + exact id hash)', () => {
     expect(model.controls.length).toBe(gt.mainSheet.controls)
     const idsHash = md5(model.controls.map((c) => c.id).sort().join('|'))

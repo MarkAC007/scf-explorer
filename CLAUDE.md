@@ -45,6 +45,11 @@ node scripts/make-fixture.mjs     # regen tests/fixtures/scf-fixture.xlsx (GOV+A
 Test fixture: `tests/fixtures/scf-fixture.xlsx` is **gitignored**. Locally it's generated
 from `~/scf-releases/<version>/` (override with `SCF_XLSX`). CI downloads the official
 release (sha256-pinned in `.github/workflows/ci.yml`) and derives it at test time.
+Tests never hard-code release facts (counts, version string, framework slugs, sample
+ids): they read them from the workbook via `tests/helpers/expected.ts`
+(`fixtureExpectations()` / `expectationsFromFile()`), so the same suites run against any
+SCF release the fixture was generated from. `scripts/ground-truth.py` degrades the same
+way — a missing sheet or header skips that section and is listed under `missing`.
 
 ## Data-integrity verification (the "dual-parser" workflow)
 

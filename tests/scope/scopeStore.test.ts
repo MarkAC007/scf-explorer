@@ -8,6 +8,7 @@ import { db } from '../../src/store/db'
 import { createScopeStore } from '../../src/scope/scopeStore'
 import type { ModelIndexes } from '../../src/model/indexes'
 import type { ScfModel } from '../../src/model/types'
+import { fixtureExpectations } from '../helpers/fixture'
 
 const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
 const model: ScfModel = parseWorkbook(
@@ -16,8 +17,7 @@ const model: ScfModel = parseWorkbook(
 )
 const ix: ModelIndexes = buildIndexes(model)
 
-const FW_A = 'nist-800-53-r5'
-const FW_B = 'iso-27002-2022'
+const { nist: FW_A, iso: FW_B } = fixtureExpectations()
 
 describe('scopeStore', () => {
   beforeEach(async () => {
@@ -30,7 +30,7 @@ describe('scopeStore', () => {
     await store.getState().init(model, ix)
     const s = await store.getState().createScope('ISO+NIST', [FW_A, FW_B])
     expect(store.getState().scopes).toHaveLength(1)
-    expect(s.scfVersion).toBe('2026.1')
+    expect(s.scfVersion).toBe(model.version)
     const store2 = createScopeStore()
     await store2.getState().init(model, ix)
     expect(store2.getState().scopes).toHaveLength(1)

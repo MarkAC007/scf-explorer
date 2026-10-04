@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import * as XLSX from 'xlsx'
+import { expectationsFor } from './expected'
 
 let cached: XLSX.WorkBook | null = null
 
@@ -18,4 +19,14 @@ export const sheet = (namePattern: RegExp): XLSX.WorkSheet => {
   const name = wb.SheetNames.find((n) => namePattern.test(n))
   if (!name) throw new Error(`fixture sheet not found: ${namePattern}`)
   return wb.Sheets[name]
+}
+
+export const hasSheet = (namePattern: RegExp): boolean =>
+  loadFixture().SheetNames.some((n) => namePattern.test(n))
+
+let expected: import('./expected').WorkbookExpectations | null = null
+/** Workbook-derived expectations for the fixture (counts, version, framework slugs). */
+export const fixtureExpectations = (): import('./expected').WorkbookExpectations => {
+  if (!expected) expected = expectationsFor(loadFixture())
+  return expected
 }

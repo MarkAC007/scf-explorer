@@ -13,6 +13,7 @@ import {
   evidenceRollup,
   solutionsRollup,
 } from '../../src/scope/scopeMath'
+import { fixtureExpectations } from '../helpers/fixture'
 
 const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
 const model = parseWorkbook(
@@ -21,8 +22,7 @@ const model = parseWorkbook(
 )
 const ix = buildIndexes(model)
 
-const FW_A = 'nist-800-53-r5'
-const FW_B = 'iso-27002-2022'
+const { nist: FW_A, iso: FW_B } = fixtureExpectations()
 
 describe('scopeControlIds', () => {
   it('is the union of the frameworks control sets', () => {

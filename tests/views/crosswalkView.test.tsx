@@ -8,6 +8,10 @@ import { parseWorkbook } from '../../src/parser/parseWorkbook'
 import { buildIndexes } from '../../src/model/indexes'
 import { modelStore } from '../../src/store/modelStore'
 import CrosswalkView from '../../src/views/CrosswalkView'
+import { fixtureExpectations } from '../helpers/fixture'
+
+// Framework slug derived from the fixture's own header (2026.1.1 → nist-800-53-r5, 2026.3 → nist-800-53-r5-2).
+const NIST = fixtureExpectations().nist
 
 beforeAll(() => {
   const buf = readFileSync(join(__dirname, '../fixtures/scf-fixture.xlsx'))
@@ -26,11 +30,11 @@ const at = (search: string) =>
 
 describe('CrosswalkView with framework ids from the URL', () => {
   it('renders coverage for a known framework', () => {
-    at('?fw=nist-800-53-r5')
+    at(`?fw=${NIST}`)
     expect(screen.getByText(/SCF controls$/)).toBeInTheDocument()
   })
   it('does not crash on an unknown framework id; shows a notice instead', () => {
-    at('?fw=nist-800-53-r5&fwB=emea-eu-nis2-renamed')
+    at(`?fw=${NIST}&fwB=emea-eu-nis2-renamed`)
     const notice = screen.getByRole('status')
     expect(notice).toHaveTextContent(/emea-eu-nis2-renamed/)
     expect(notice).toHaveTextContent(/not in this workbook/i)

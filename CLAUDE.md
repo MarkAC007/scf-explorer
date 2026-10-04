@@ -110,11 +110,13 @@ semantics. IBM Plex Sans/Mono + Space Grotesk (display). Custom utilities in
 
 ## Known open items
 
-- **2026.3 compat (tracked in issues #35–#42):** the sources sheet is now matched as
-  "Focal Documents (FD)" and the renamed ERL / AO-rigor / privacy "2026.3 SCF #" headers are
-  recognised (#35). Still open: folded compensating-control columns and `Legacy SCF #` (#36),
-  dense risk/threat likelihood cells (#37), legacy-ID aliasing (#38), scope migration (#39),
-  crosswalk unknown-id crash (#40), fixture-derived test data (#41), CI on 2026.3 (#42).
+- **2026.3 compat: done (issues #35–#42).** Sources sheet matched as "Focal Documents (FD)",
+  renamed ERL / AO-rigor / privacy headers, folded compensating-control and `Legacy SCF #` columns
+  classified, risk/threat likelihood cells parsed, legacy-ID aliasing, scope slug migration and
+  the crosswalk unknown-id notice all landed. Tests derive expectations from the fixture and CI
+  runs the parser against every supported release (`compat` matrix in ci.yml). To support a new
+  SCF release: add its URL + sha256 to the matrix, run `tests/compat` and `tests/integrity`
+  locally with `SCF_XLSX` first, and fix whatever the matrix turns red.
 - Errata note `docs/scf-errata-erl-crossrefs.md` is ready to send to SCF support (Mark's call).
 - SourcesView render test has a 15s timeout (250 rows under parallel vitest load) — timing,
   not data; don't "fix" by weakening assertions.

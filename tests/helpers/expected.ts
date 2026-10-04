@@ -21,6 +21,7 @@ export interface WorkbookExpectations {
   controlCount: number
   domainCount: number
   aoCount: number
+  erlCount: number
   /** Slug of the NIST SP 800-53 R5 column (`nist-800-53-r5`, `nist-800-53-r5-2`, …). */
   nist: string
   /** Slug of the ISO/IEC 27002:2022 column. */
@@ -116,6 +117,7 @@ export const expectationsFor = (wb: XLSX.WorkBook): WorkbookExpectations => {
   const eh = (erl[0] ?? []).map(normalizeHeader)
   const eId = column(eh, /^erl #$/i, 'ERL id')
   const eMap = column(eh, /^scf control mappings$/i, 'ERL control mappings')
+  const erlCount = erl.slice(1).filter((r) => filled(r[eId])).length
   const eRow = erl.slice(1).find((r) => filled(r[eId]) && filled(r[eMap]))
   if (!eRow) throw new Error('ERL sheet has no row with control mappings')
   const erlSample = {
@@ -190,6 +192,7 @@ export const expectationsFor = (wb: XLSX.WorkBook): WorkbookExpectations => {
     controlCount: controlRows.length,
     domainCount: domainNames.size,
     aoCount,
+    erlCount,
     nist: pickSlug(slugs, /^nist-800-53-r5(-\d+)?$/, 'NIST SP 800-53 R5'),
     iso: pickSlug(slugs, /^iso-27002-2022$/, 'ISO/IEC 27002:2022'),
     nis2: slugs.find((s) => /^emea-eu-nis2(-\d{4})?$/.test(s)),

@@ -39,7 +39,7 @@ describe('scopeStore', () => {
     await store.getState().init(model, ix)
     const s = store.getState().scopes[0]
     expect(s.frameworkIds).toEqual([FW_B, FW_A])
-    expect(s.scfVersion).toBe('2026.1')
+    expect(s.scfVersion).toBe(model.version)
     expect(store.getState().notices).toHaveLength(1)
     expect(store.getState().notices[0]).toMatch(/iso-27002 → iso-27002-2022/)
     expect(store.getState().notices[0]).toMatch(/dropped 1 framework\(s\).*ghost-framework/)

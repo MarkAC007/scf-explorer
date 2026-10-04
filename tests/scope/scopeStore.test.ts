@@ -25,6 +25,30 @@ describe('scopeStore', () => {
     localStorage.clear()
   })
 
+  it('migrates renamed framework slugs on init and reports it', async () => {
+    // "iso-27002" is how a pre-rename release would have slugged ISO 27002; the fixture knows
+    // only "iso-27002-2022". "ghost-framework" has no match and is dropped.
+    await db.scopes.put({
+      id: 'scope-old',
+      name: 'Legacy',
+      frameworkIds: ['iso-27002', FW_A, 'ghost-framework'],
+      createdAt: '2026-01-01T00:00:00.000Z',
+      scfVersion: '2025.4',
+    })
+    const store = createScopeStore()
+    await store.getState().init(model, ix)
+    const s = store.getState().scopes[0]
+    expect(s.frameworkIds).toEqual([FW_B, FW_A])
+    expect(s.scfVersion).toBe('2026.1')
+    expect(store.getState().notices).toHaveLength(1)
+    expect(store.getState().notices[0]).toMatch(/iso-27002 → iso-27002-2022/)
+    expect(store.getState().notices[0]).toMatch(/dropped 1 framework\(s\).*ghost-framework/)
+    // persisted, so the next init is quiet
+    const store2 = createScopeStore()
+    await store2.getState().init(model, ix)
+    expect(store2.getState().notices).toEqual([])
+  })
+
   it('creates, persists and lists scopes', async () => {
     const store = createScopeStore()
     await store.getState().init(model, ix)

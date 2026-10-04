@@ -328,6 +328,9 @@ export default function ControlDetailView() {
                               </Link>
                               <span className="text-sm font-medium text-gray-900">{o.name}</span>
                             </div>
+                            {o.description && (
+                              <p className="mt-1 text-sm text-gray-500">{o.description}</p>
+                            )}
                             {o.justification && (
                               <p className="mt-1 text-sm text-gray-600">{o.justification}</p>
                             )}

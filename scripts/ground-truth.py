@@ -83,6 +83,15 @@ def classify(header):
         return ("threat", m.group(1).upper())
     if re.match(r"^errata", h, re.I):
         return ("errata", None)
+    # SCF 2026.3 main-sheet additions — not framework mappings
+    if re.match(r"^legacy scf #$", h, re.I):
+        return ("legacy", None)
+    if re.match(r"^orphaned controls\b", h, re.I):
+        return ("orphaned", None)
+    if re.match(r"^risk if primary control", h, re.I) or re.match(
+        r"^(possible )?compensating control #\s*\d+( name| description| justification)?$", h, re.I
+    ):
+        return ("compensating", None)
     if re.match(SKIPPED, h, re.I):
         return ("skipped", None)
     return ("framework", slugify(h))
@@ -96,6 +105,53 @@ def sheet_by(pattern):
         if re.search(pattern, name.strip(), re.I):
             return wb[name]
     raise KeyError(pattern)
+
+
+def sheet_by_opt(pattern):
+    try:
+        return sheet_by(pattern)
+    except KeyError:
+        return None
+
+
+def iter_compensating():
+    """Yield (control_id, risk_note, [(opt_id, name, justification), ...]) from the dedicated
+    "Compensating Controls" sheet (<= 2026.2) or the columns folded into the main sheet (2026.3+)."""
+    ws = sheet_by_opt(r"^compensating controls")
+    if ws is not None:
+        rows = ws.iter_rows(values_only=True)
+        hdr = [norm(h) for h in next(rows)]
+        cctl = hdr.index("SCF Control #")
+        crisk = next(i for i, h in enumerate(hdr) if re.match(r"^risk if primary control", h, re.I))
+        # marker column, then name, id, justification
+        groups = [(i + 2, i + 1, i + 3) for i, h in enumerate(hdr) if re.match(r"^possible compensating control #\d", h, re.I)]
+    else:
+        ws = sheet_by(r"^scf 20")
+        rows = ws.iter_rows(values_only=True)
+        hdr = [norm(h) for h in next(rows)]
+        cctl = next(i for i, h in enumerate(hdr) if re.match(r"^scf #$", h, re.I))
+        crisk = next((i for i, h in enumerate(hdr) if re.match(r"^risk if primary control", h, re.I)), None)
+        if crisk is None:
+            return
+        groups = []
+        for i, h in enumerate(hdr):
+            m = re.match(r"^possible compensating control #\s*(\d+)$", h, re.I)
+            if not m:
+                continue
+            n = m.group(1)
+            name = next(j for j, x in enumerate(hdr) if re.match(rf"^compensating control #\s*{n} name$", x, re.I))
+            just = next(j for j, x in enumerate(hdr) if re.match(rf"^compensating control #\s*{n} justification$", x, re.I))
+            groups.append((i, name, just))  # the marker column itself holds the id
+    for r in rows:
+        cid_v = norm(r[cctl])
+        if not re.match(r"^[A-Z]{2,4}-\d", cid_v):
+            continue
+        opts = []
+        for gi, gn, gj in groups:
+            oid = norm(r[gi]) if gi < len(r) else ""
+            if oid and not re.match(r"^n/?a$", oid, re.I):
+                opts.append((oid, norm(r[gn]) if gn < len(r) else "", norm(r[gj]) if gj < len(r) else ""))
+        yield cid_v, norm(r[crisk]), opts
 
 
 out = {}
@@ -318,20 +374,10 @@ for sid, sample in out["samples"].items():
     )
 
 # ---- Compensating ------------------------------------------------------------
-ws = sheet_by(r"^compensating controls")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-cctl = hdr.index("SCF Control #")
-groups = [i for i, h in enumerate(hdr) if re.match(r"^possible compensating control #\d", h, re.I)]
 comp_count, comp_options = 0, 0
-for r in rows:
-    if not re.match(r"^[A-Z]{2,4}-\d", norm(r[cctl])):
-        continue
+for _cid, _risk, opts in iter_compensating():
     comp_count += 1
-    for g in groups:
-        oid = norm(r[g + 2]) if g + 2 < len(r) else ""
-        if oid and not re.match(r"^n/?a$", oid, re.I):
-            comp_options += 1
+    comp_options += len(opts)
 out["compensating"] = {"count": comp_count, "options": comp_options}
 
 # ---- Privacy principles --------------------------------------------------------
@@ -400,23 +446,9 @@ for r in rows:
     erl_rows.append("\x1f".join([eid, norm(r[ca_]), norm(r[cart]), norm(r[cd_]), ";".join(split_multi(r[cm_]))]))
 out["erl"]["contentHash"] = md5("\n".join(sorted(erl_rows)))
 
-ws = sheet_by(r"^compensating controls")
-rows = ws.iter_rows(values_only=True)
-hdr = [norm(h) for h in next(rows)]
-cctl = hdr.index("SCF Control #")
-crisk = next(i for i, h in enumerate(hdr) if re.match(r"^risk if primary control", h, re.I))
-groups = [i for i, h in enumerate(hdr) if re.match(r"^possible compensating control #\d", h, re.I)]
 comp_rows = []
-for r in rows:
-    cid_v = norm(r[cctl])
-    if not re.match(r"^[A-Z]{2,4}-\d", cid_v):
-        continue
-    opts = []
-    for g in groups:
-        oid = norm(r[g + 2]) if g + 2 < len(r) else ""
-        if oid and not re.match(r"^n/?a$", oid, re.I):
-            opts.append(f"{oid}:{norm(r[g + 1])}:{norm(r[g + 3]) if g + 3 < len(r) else ''}")
-    comp_rows.append("\x1f".join([cid_v, norm(r[crisk]), "|".join(opts)]))
+for cid_v, risk_v, opts in iter_compensating():
+    comp_rows.append("\x1f".join([cid_v, risk_v, "|".join(f"{oid}:{nm}:{js}" for oid, nm, js in opts)]))
 out["compensating"]["contentHash"] = md5("\n".join(sorted(comp_rows)))
 
 ws = sheet_by(r"domains & principles")

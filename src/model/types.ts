@@ -31,6 +31,8 @@ export interface Solution {
 export interface Control {
   id: string
   domainId: string
+  /** Prior-release ids this control was renumbered from ("Legacy SCF #", SCF 2026.3+). */
+  legacyIds: string[]
   name: string
   description: string
   question: string
@@ -90,6 +92,8 @@ export interface CompensatingOption {
   name: string
   id: string
   justification: string
+  /** Only present when the workbook carries a description column (SCF 2026.3+ folded layout). */
+  description?: string
 }
 
 export interface CompensatingEntry {

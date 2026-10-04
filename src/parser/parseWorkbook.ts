@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx'
-import type { Framework, ParseReport, ScfModel } from '../model/types'
+import type { CompensatingEntry, Framework, ParseReport, ScfModel } from '../model/types'
 import { parseDomains } from './sheets/domains'
 import { parseSources } from './sheets/sources'
 import { parseMainSheet } from './sheets/mainSheet'
@@ -72,6 +72,19 @@ export const parseWorkbook = (data: ArrayBuffer, fileName: string): ScfModel => 
 
   const sources = safe('sources', parseSources, [] as Framework[])
   const main = parseMainSheet(wb.Sheets[mainName], sources)
+
+  // SCF 2026.3 folded the Compensating Controls sheet into the main sheet. When the
+  // dedicated sheet is absent but the main sheet carries the columns, that is not a
+  // missing sheet — record where the data came from instead of warning.
+  let compensating: CompensatingEntry[]
+  if (found.has('compensating')) compensating = safe('compensating', parseCompensating, [])
+  else {
+    compensating = main.compensating
+    if (compensating.length) {
+      report.warnings = report.warnings.filter((w) => w !== 'Sheet not found: compensating')
+      report.sheets.push({ name: 'compensating', matched: `${mainName} (folded columns)`, rows: compensating.length })
+    }
+  }
   report.unmappedColumns.push(
     ...main.unmapped.map((header) => ({ sheet: mainName, header })),
   )
@@ -104,7 +117,7 @@ export const parseWorkbook = (data: ArrayBuffer, fileName: string): ScfModel => 
     threats: safe('threats', parseThreatCatalog, []),
     assessmentObjectives: safe('aos', parseAssessmentObjectives, []),
     erlItems: safe('erl', parseErl, []),
-    compensating: safe('compensating', parseCompensating, []),
+    compensating,
     privacyPrinciples: safe('privacy', parsePrivacyPrinciples, []),
     baselineDefs: main.baselineDefs,
     parseReport: report,

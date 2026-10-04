@@ -70,9 +70,18 @@ function Layout() {
         <aside className="flex w-52 shrink-0 flex-col bg-ink-900 text-gray-400">
           <NavLink
             to="/"
-            className="px-4 py-5 font-display text-lg font-bold tracking-tight text-white"
+            className="flex items-center gap-2.5 px-4 py-4 font-display text-lg font-bold tracking-tight text-white"
           >
-            SCF <span className="text-pine-300">Explorer</span>
+            <img
+              src="/compliancegenie-mark.png"
+              alt="ComplianceGenie.io"
+              width={36}
+              height={36}
+              className="shrink-0"
+            />
+            <span>
+              SCF <span className="text-pine-300">Explorer</span>
+            </span>
           </NavLink>
           <nav className="flex-1 space-y-0.5 overflow-y-auto px-2" aria-label="Main">
             {NAV.map((n) => (

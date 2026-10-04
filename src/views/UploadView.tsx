@@ -29,6 +29,13 @@ export default function UploadView() {
 
   return (
     <div className="mx-auto flex min-h-full max-w-2xl flex-col items-center justify-center p-8 text-center">
+      <img
+        src="/compliancegenie-mark.png"
+        alt="ComplianceGenie.io"
+        width={88}
+        height={88}
+        className="mb-4"
+      />
       <h1 className="text-3xl font-bold tracking-tight">
         SCF <span className="text-pine-600">Explorer</span>
       </h1>

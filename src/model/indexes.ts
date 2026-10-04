@@ -12,6 +12,8 @@ import type {
 
 export interface ModelIndexes {
   controlById: Map<string, Control>
+  /** Controls by the id they carried in an earlier SCF release ("Legacy SCF #", 2026.3+). */
+  controlsByLegacyId: Map<string, Control[]>
   domainById: Map<string, Domain>
   frameworkById: Map<string, Framework>
   riskById: Map<string, Risk>
@@ -56,10 +58,12 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
   const unlikelyControlsByRisk = new Map<string, Control[]>()
   const unlikelyControlsByThreat = new Map<string, Control[]>()
   const controlsByBaseline = new Map<string, Control[]>()
+  const controlsByLegacyId = new Map<string, Control[]>()
   let hasLikelihood = false
 
   for (const c of m.controls) {
     push(controlsByDomain, c.domainId, c)
+    for (const legacy of c.legacyIds ?? []) push(controlsByLegacyId, legacy, c)
     for (const fw of Object.keys(c.mappings)) push(controlsByFramework, fw, c)
     for (const r of c.riskIds) push(controlsByRisk, r, c)
     for (const t of c.threatIds) push(controlsByThreat, t, c)
@@ -93,6 +97,7 @@ export const buildIndexes = (m: ScfModel): ModelIndexes => {
 
   return {
     controlById: new Map(m.controls.map((c) => [c.id, c])),
+    controlsByLegacyId,
     domainById: new Map(m.domains.map((d) => [d.id, d])),
     frameworkById: new Map(m.frameworks.map((f) => [f.id, f])),
     riskById: new Map(m.risks.map((r) => [r.id, r])),

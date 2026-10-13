@@ -184,7 +184,9 @@ h2 {
   box-shadow:
     0 30px 60px -20px rgba(0, 0, 0, 0.6),
     0 0 0 1px rgba(255, 255, 255, 0.04);
-  object-fit: cover;
+  /* contain, not cover: author CSS overrides the browser's fullscreen
+     default, and cover crops/zooms the video on non-16:9 screens. */
+  object-fit: contain;
 }
 
 .hero-media figcaption {

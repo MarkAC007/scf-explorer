@@ -27,6 +27,17 @@ test('landing page renders with CTA into the app', async ({ page }) => {
   await page.waitForURL('**/app/**')
 })
 
+test('hero video is not cropped or zoomed in fullscreen', async ({ page }) => {
+  // The config viewport is 16:10. Author `object-fit: cover` overrides the
+  // browser's fullscreen default and crops a 16:9 video to fill the screen.
+  await page.goto('/')
+  const video = page.locator('.hero video.hero-video')
+  await video.evaluate((v) => v.requestFullscreen())
+  await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(true)
+  await expect(video).toHaveCSS('object-fit', 'contain')
+  await page.evaluate(() => document.exitFullscreen())
+})
+
 test('legacy share links on the root redirect into the app', async ({ page }) => {
   await page.goto('/#/upload')
   await page.waitForURL('**/app/#/upload')
